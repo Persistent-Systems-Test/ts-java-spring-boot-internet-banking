@@ -17,7 +17,7 @@ Derived from the product context and PDD findings.
 ### Key messages
 
 - Architecture: sensible decomposition (gateway, channel services, core ledger, discovery, config, tracing) but synchronous non-atomic distributed writes and core exposed at the edge (TDD-ARC-01, TDD-ARC-02).
-- Security: 8 Critical findings incl. committed secrets, broken object/function-level authorisation, header-trust model, password logging, third-party config supply chain (TDD-SEC-*).
+- Security: 7 Critical findings incl. committed secrets, broken object/function-level authorisation, header-trust model, password logging, third-party config supply chain (TDD-SEC-*).
 - Data integrity: no amount validation, double-adjusted balances, no locking, no idempotency, mutable single-entry ledger (TDD-DAT-*).
 - Engineering maturity: no CI/CD, 18 unit tests in one service, no IaC/Kubernetes despite README claims (TDD-ENG-*, TDD-INF-*).
 - Stack currency: Spring Boot 3.2.4 / Spring Cloud 2023.0.0 and Keycloak 23 are past their open-source support windows per vendor policy (to be re-verified) (TDD-STK-01, STK-02).
@@ -30,7 +30,7 @@ Derived from the product context and PDD findings.
 | Technology stack | 2.5 | Modern Java 21 / Spring; framework line out of OSS support; springdoc mismatch |
 | Application architecture | 3.0 | Good bounded contexts; sync-only; no saga/outbox |
 | Code quality | 2.5 | Readable, layered; duplication; no validation; raw ResponseEntity |
-| Security | 1.0 | 8 Critical / 8 High |
+| Security | 1.0 | 7 Critical / 5 High |
 | Data architecture | 1.0 | Ledger integrity defects; ddl-auto update; seed data in prod migration |
 | Infrastructure & deployment | 1.5 | Compose only; no IaC/K8s/CI; root containers |
 | Scalability & performance | 1.5 | Stateless services but no locking, caching, async, perf tests |
