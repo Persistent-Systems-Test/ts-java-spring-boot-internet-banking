@@ -1,0 +1,949 @@
+{
+  "meta": {
+    "repository": "Persistent-Systems-Test/ts-java-spring-boot-internet-banking",
+    "product": "Internet Banking Concept Microservices",
+    "baseline_branch": "main",
+    "baseline_commit": "fa1c445",
+    "due_diligence_branch": "ai-due-diligence/internet-banking-concept-microservices",
+    "assessment_date": "2026-11-03",
+    "generator": "Devin (AI)"
+  },
+  "classes": {
+    "VERIFIED": "Verified implementation - observed in source code/config in this repository",
+    "DOCUMENTED": "Documented but unverified - stated in README/docs, not found in code",
+    "INFERRED": "Inferred - assessor reasoning from code structure; not explicitly documented",
+    "MISSING": "Missing information - not present in repository",
+    "STAKEHOLDER": "Requires stakeholder validation - business information not derivable from code"
+  },
+  "context": {
+    "overview": {
+      "purpose": [
+        "Digital (internet) banking channel platform exposing REST APIs for online-banking user onboarding, account lookup, intra-bank fund transfers and utility bill payments, on top of a simulated core banking ledger.",
+        "VERIFIED",
+        [
+          "E-01",
+          "E-26"
+        ]
+      ],
+      "origin": [
+        "Tutorial/reference implementation by javatodev.com (MIT), first commit 2021-05-09, upgraded to Java 21 / Spring Boot 3.2.4 in 2024.",
+        "VERIFIED",
+        [
+          "E-01",
+          "E-04",
+          "E-43"
+        ]
+      ],
+      "business_problem": [
+        "Banks need a secure self-service digital channel decoupled from the core banking system so channel features evolve independently of the core.",
+        "INFERRED",
+        [
+          "E-01",
+          "E-26"
+        ]
+      ],
+      "objectives": [
+        "Stated objective is educational: demonstrate Spring Boot microservices patterns that 'evolve as a full fledged REST API collection until deployments'. Commercial objectives/outcomes are not documented.",
+        "DOCUMENTED / STAKEHOLDER",
+        [
+          "E-01"
+        ]
+      ]
+    },
+    "users": [
+      [
+        "Retail bank customer (existing core customer)",
+        "Registers, logs in, transfers funds, pays bills",
+        "VERIFIED (API only, no UI)",
+        [
+          "E-28",
+          "E-33",
+          "E-34"
+        ]
+      ],
+      [
+        "Bank administrator / operations",
+        "Approves/blacklists registrations",
+        "VERIFIED (PATCH status; no role model)",
+        [
+          "E-28",
+          "E-29"
+        ]
+      ],
+      [
+        "Developer / learner",
+        "Learns microservices patterns via tutorial, Postman, compose",
+        "DOCUMENTED",
+        [
+          "E-01",
+          "E-42"
+        ]
+      ],
+      [
+        "Compliance, risk, customer-service staff",
+        "No supporting capability",
+        "MISSING",
+        []
+      ],
+      [
+        "Commercial buyer / target segment",
+        "Not documented",
+        "STAKEHOLDER",
+        []
+      ]
+    ],
+    "capabilities": [
+      [
+        "CAP-01",
+        "Customer self-registration",
+        "VERIFIED",
+        [
+          "E-28",
+          "E-29"
+        ]
+      ],
+      [
+        "CAP-02",
+        "Registration approval / status management",
+        "VERIFIED",
+        [
+          "E-28",
+          "E-29"
+        ]
+      ],
+      [
+        "CAP-03",
+        "Authentication (OIDC/JWT via Keycloak)",
+        "VERIFIED",
+        [
+          "E-10",
+          "E-15"
+        ]
+      ],
+      [
+        "CAP-04",
+        "Bank account & biller lookup",
+        "VERIFIED",
+        [
+          "E-26"
+        ]
+      ],
+      [
+        "CAP-05",
+        "Intra-bank fund transfer",
+        "VERIFIED",
+        [
+          "E-18",
+          "E-33"
+        ]
+      ],
+      [
+        "CAP-06",
+        "Utility bill payment (ledger debit only)",
+        "VERIFIED",
+        [
+          "E-21",
+          "E-34"
+        ]
+      ],
+      [
+        "CAP-07",
+        "Transfer / payment history (paged)",
+        "VERIFIED",
+        [
+          "E-33",
+          "E-34"
+        ]
+      ],
+      [
+        "CAP-08",
+        "Customer & user listing",
+        "VERIFIED",
+        [
+          "E-26",
+          "E-29"
+        ]
+      ],
+      [
+        "CAP-09",
+        "Audit columns on channel records",
+        "VERIFIED",
+        [
+          "E-36"
+        ]
+      ],
+      [
+        "CAP-10",
+        "Distributed tracing",
+        "VERIFIED",
+        [
+          "E-37",
+          "E-14"
+        ]
+      ],
+      [
+        "CAP-11",
+        "Notifications via RabbitMQ",
+        "DOCUMENTED (not implemented)",
+        [
+          "E-02",
+          "E-03"
+        ]
+      ],
+      [
+        "CAP-12",
+        "Prometheus metrics / Kubernetes deployment",
+        "DOCUMENTED (not implemented)",
+        [
+          "E-03"
+        ]
+      ]
+    ],
+    "workflows": [
+      [
+        "WF-01 Onboarding",
+        [
+          "Customer POST /user/api/v1/bank-users/register {email, identification, password}",
+          "User svc: Keycloak search(email) -> reject if found",
+          "User svc -> Core GET /api/v1/user/{identification}",
+          "Email must equal core email",
+          "Create disabled Keycloak user with password",
+          "Persist local user status=PENDING",
+          "Admin PATCH /update/{id} status=APPROVED -> Keycloak user enabled"
+        ],
+        [
+          "E-28",
+          "E-29"
+        ]
+      ],
+      [
+        "WF-02 Login",
+        [
+          "Client calls Keycloak token endpoint (password grant)",
+          "Gateway validates JWT via JWKS on each call"
+        ],
+        [
+          "E-10",
+          "E-15"
+        ]
+      ],
+      [
+        "WF-03 Fund transfer",
+        [
+          "POST /fund-transfer/api/v1/transfer {fromAccount,toAccount,amount}",
+          "Persist fund_transfer PENDING",
+          "Feign -> Core POST /api/v1/transaction/fund-transfer",
+          "Core validates balance, updates both accounts, writes 2 ledger rows",
+          "Mark SUCCESS with core transactionId"
+        ],
+        [
+          "E-18",
+          "E-20",
+          "E-33"
+        ]
+      ],
+      [
+        "WF-04 Utility payment",
+        [
+          "POST /utility-payment/api/v1/utility-payment {providerId,amount,referenceNumber,account}",
+          "Persist PROCESSING",
+          "Feign -> Core util-payment: debit account, write ledger row",
+          "Mark SUCCESS"
+        ],
+        [
+          "E-21",
+          "E-34"
+        ]
+      ],
+      [
+        "WF-05 History",
+        [
+          "GET /fund-transfer/api/v1/transfer or /utility-payment/api/v1/utility-payment (paged, all records)"
+        ],
+        [
+          "E-33",
+          "E-34"
+        ]
+      ]
+    ],
+    "business_rules": [
+      [
+        "BR-01",
+        "Registration requires the identification number to exist in core and email to match core record",
+        "VERIFIED",
+        [
+          "E-29"
+        ]
+      ],
+      [
+        "BR-02",
+        "Email must not already exist in Keycloak (fuzzy search)",
+        "VERIFIED",
+        [
+          "E-29",
+          "E-30"
+        ]
+      ],
+      [
+        "BR-03",
+        "New online users start PENDING and disabled until APPROVED",
+        "VERIFIED",
+        [
+          "E-29"
+        ]
+      ],
+      [
+        "BR-04",
+        "Debit allowed if actualBalance >= amount and actualBalance >= 0",
+        "VERIFIED",
+        [
+          "E-19"
+        ]
+      ],
+      [
+        "BR-05",
+        "Amount must be positive",
+        "MISSING (not enforced)",
+        [
+          "E-19"
+        ]
+      ],
+      [
+        "BR-06",
+        "Only ACTIVE accounts may transact",
+        "MISSING (enum exists, not enforced)",
+        [
+          "E-19",
+          "E-25"
+        ]
+      ],
+      [
+        "BR-07",
+        "Customer may only debit own accounts",
+        "MISSING",
+        [
+          "E-33"
+        ]
+      ],
+      [
+        "BR-08",
+        "Transaction limits / cut-offs / fees",
+        "MISSING",
+        []
+      ]
+    ],
+    "entities": [
+      [
+        "banking_core_user",
+        "core",
+        "id, first_name, last_name, email, identification_number",
+        "1-* account"
+      ],
+      [
+        "banking_core_account",
+        "core",
+        "id, number, type, status, actual_balance, available_balance DECIMAL(19,2), user_id",
+        "*-1 user; 1-* transaction"
+      ],
+      [
+        "banking_core_transaction",
+        "core",
+        "id, amount, transaction_type, reference_number, transaction_id, account_id",
+        "*-1 account (mapped @OneToOne)"
+      ],
+      [
+        "banking_core_utility_account",
+        "core",
+        "id, number, provider_name",
+        "-"
+      ],
+      [
+        "user",
+        "user-service",
+        "id, auth_id, identification, status + audit",
+        "auth_id -> Keycloak user"
+      ],
+      [
+        "fund_transfer",
+        "fund-transfer",
+        "id, transaction_reference, from_account, to_account, amount, status + audit",
+        "transaction_reference -> core transaction_id"
+      ],
+      [
+        "utility_payment",
+        "utility-payment",
+        "id, provider_id, amount, reference_number, account, transaction_id, status + audit",
+        "transaction_id -> core"
+      ]
+    ],
+    "apis": [
+      [
+        "Gateway",
+        "*",
+        "/user/** /fund-transfer/** /banking-core/** /utility-payment/**",
+        "Routing; JWT required except register & actuator"
+      ],
+      [
+        "User",
+        "POST",
+        "/api/v1/bank-users/register",
+        "Register (public)"
+      ],
+      [
+        "User",
+        "PATCH",
+        "/api/v1/bank-users/update/{id}",
+        "Change status"
+      ],
+      [
+        "User",
+        "GET",
+        "/api/v1/bank-users, /api/v1/bank-users/{id}",
+        "List / read"
+      ],
+      [
+        "Fund Transfer",
+        "POST/GET",
+        "/api/v1/transfer",
+        "Transfer / history"
+      ],
+      [
+        "Utility Payment",
+        "POST/GET",
+        "/api/v1/utility-payment",
+        "Pay / history"
+      ],
+      [
+        "Core",
+        "GET",
+        "/api/v1/account/bank-account/{n}, /api/v1/account/util-account/{provider}",
+        "Lookups"
+      ],
+      [
+        "Core",
+        "POST",
+        "/api/v1/transaction/fund-transfer, /api/v1/transaction/util-payment",
+        "Ledger postings"
+      ],
+      [
+        "Core",
+        "GET",
+        "/api/v1/user/{identification}, /api/v1/user",
+        "Customer lookup"
+      ]
+    ],
+    "integrations": [
+      [
+        "Keycloak Admin REST API",
+        "User service (client_credentials)",
+        "VERIFIED",
+        [
+          "E-31"
+        ]
+      ],
+      [
+        "Keycloak OIDC / JWKS",
+        "Gateway",
+        "VERIFIED",
+        [
+          "E-15"
+        ]
+      ],
+      [
+        "External config repo (GitHub)",
+        "Config Server",
+        "VERIFIED",
+        [
+          "E-11"
+        ]
+      ],
+      [
+        "Zipkin",
+        "All services",
+        "VERIFIED",
+        [
+          "E-14"
+        ]
+      ],
+      [
+        "RabbitMQ",
+        "-",
+        "DOCUMENTED only",
+        [
+          "E-03"
+        ]
+      ],
+      [
+        "Real CBS / payment rails / biller aggregator",
+        "-",
+        "MISSING",
+        [
+          "E-21"
+        ]
+      ]
+    ],
+    "deployment": [
+      "docker-compose on a single host: 7 app containers + MySQL + Keycloak + Postgres + Zipkin, static IPs on 172.25.0.0/16, images referenced as javatodev/*; services wait for registry/config/MySQL via wait-for-it.sh. No Kubernetes/IaC/CI.",
+      "VERIFIED",
+      [
+        "E-05",
+        "E-39",
+        "E-43"
+      ]
+    ],
+    "gaps": [
+      "Business KPIs, customers, revenue, adoption, SLAs - not in repository (STAKEHOLDER)",
+      "Production deployment history / incidents - not in repository (STAKEHOLDER)",
+      "Ownership of external config repo and Docker Hub images (STAKEHOLDER)",
+      "Target core banking system and payment rails (STAKEHOLDER)",
+      "Non-functional requirements: TPS, latency, RPO/RTO, data residency (MISSING)",
+      "Security testing / VAPT reports (MISSING)",
+      "Build/test execution results - dependency download blocked (HTTP 429) in assessment environment (LIMITATION)"
+    ]
+  },
+  "inventory": {
+    "languages": [
+      "Java 21 (VERIFIED, build.gradle sourceCompatibility)",
+      "SQL (Flyway migrations)",
+      "YAML (Spring config, docker-compose)",
+      "Shell (wait-for-it.sh)"
+    ],
+    "frameworks": [
+      "Spring Boot 3.2.4",
+      "Spring Cloud 2023.0.0 (Gateway, Netflix Eureka, Config, OpenFeign)",
+      "Spring Data JPA / Hibernate",
+      "Spring Security OAuth2 Resource Server (gateway only)",
+      "Micrometer Tracing (Brave) + Zipkin reporter",
+      "springdoc-openapi 2.1.0",
+      "Lombok",
+      "Flyway 10.12.0 (core only)"
+    ],
+    "platforms": [
+      "MySQL 8.4.0",
+      "PostgreSQL 15 (Keycloak)",
+      "Keycloak 23.0.7 (+ admin client 24.0.4)",
+      "Zipkin 3",
+      "Docker / docker-compose 3.6",
+      "Eclipse Temurin 21 JRE Alpine"
+    ],
+    "tools": [
+      "Gradle 8.6 wrapper x7",
+      "Postman collection + environment",
+      "draw.io diagram",
+      "IntelliJ HTTP file (api_test.http)"
+    ],
+    "modules": [
+      [
+        "core-banking-service",
+        "8092",
+        36,
+        831,
+        "Simulated core ledger"
+      ],
+      [
+        "internet-banking-user-service",
+        "8083",
+        32,
+        822,
+        "Registration, approval, Keycloak sync"
+      ],
+      [
+        "internet-banking-fund-transfer-service",
+        "8084",
+        25,
+        547,
+        "Fund transfer orchestration + history"
+      ],
+      [
+        "internet-banking-utility-payment-service",
+        "8085",
+        23,
+        530,
+        "Utility payment orchestration + history"
+      ],
+      [
+        "internet-banking-api-gateway",
+        "8082",
+        3,
+        86,
+        "Edge routing + JWT validation"
+      ],
+      [
+        "internet-banking-config-server",
+        "8090",
+        1,
+        15,
+        "Spring Cloud Config (git)"
+      ],
+      [
+        "internet-banking-service-registry",
+        "8081",
+        1,
+        15,
+        "Eureka server"
+      ]
+    ],
+    "discovery_checklist": [
+      [
+        "Repository structure",
+        "VERIFIED",
+        "7 Gradle projects + docker-compose/, postman_collection/, draw_io/"
+      ],
+      [
+        "README / documentation",
+        "VERIFIED",
+        "README.md only; links to external tutorial articles"
+      ],
+      [
+        "Application source code",
+        "VERIFIED",
+        "121 Java files, ~2,846 LOC"
+      ],
+      [
+        "Configuration files",
+        "VERIFIED",
+        "bootstrap*.yml in repo; runtime config in external repo (E-11, E-13, E-14)"
+      ],
+      [
+        "Build & deployment files",
+        "VERIFIED",
+        "build.gradle x7, Dockerfile x7, docker-compose x2"
+      ],
+      [
+        "Dependency management",
+        "VERIFIED",
+        "Gradle + Spring dependency-management BOM; no lock files, no version catalog"
+      ],
+      [
+        "API specifications",
+        "VERIFIED (runtime only)",
+        "springdoc annotations; no static OpenAPI file; Postman collection"
+      ],
+      [
+        "Database schemas & migrations",
+        "VERIFIED",
+        "Flyway in core only; Hibernate ddl-auto update elsewhere"
+      ],
+      [
+        "Infrastructure-as-Code",
+        "MISSING",
+        "No Terraform/Helm/K8s manifests (README lists Kubernetes)"
+      ],
+      [
+        "CI/CD pipelines",
+        "MISSING",
+        "Workflows removed in HEAD commit"
+      ],
+      [
+        "Unit / integration / E2E tests",
+        "PARTIAL",
+        "18 unit tests (core); smoke tests; no integration/E2E automation"
+      ],
+      [
+        "Architecture diagrams",
+        "PARTIAL",
+        "One draw.io diagram (centralised config); README links external image"
+      ],
+      [
+        "Operational / monitoring config",
+        "PARTIAL",
+        "Actuator + Zipkin tracing; no metrics backend/alerts/dashboards"
+      ],
+      [
+        "Security / authentication",
+        "VERIFIED",
+        "Keycloak realm export, gateway resource server, user-service admin client"
+      ]
+    ]
+  },
+  "evidence": [
+    {
+      "id": "E-01",
+      "path": "README.md",
+      "lines": "1-20",
+      "shows": "Self-description as tutorial 'Internet banking API concept'; releases 1.0.0 / 2.0.0"
+    },
+    {
+      "id": "E-02",
+      "path": "README.md",
+      "lines": "60-75",
+      "shows": "Test credentials published; list of microservices incl. RabbitMQ + Notification service 'PENDING Development'"
+    },
+    {
+      "id": "E-03",
+      "path": "README.md",
+      "lines": "83-101",
+      "shows": "Technology stack list (incl. RabbitMQ, Prometheus, Kubernetes, Sleuth)"
+    },
+    {
+      "id": "E-04",
+      "path": "LICENSE",
+      "lines": "1-3",
+      "shows": "MIT licence, (c) 2022 javatodev.com"
+    },
+    {
+      "id": "E-05",
+      "path": "docker-compose/docker-compose.yml",
+      "lines": "1-139",
+      "shows": "Full stack: Zipkin, Keycloak 23.0.7 start-dev, Postgres 15, MySQL, 7 services, static IPs 172.25.0.0/16, host ports published"
+    },
+    {
+      "id": "E-06",
+      "path": "docker-compose/docker-compose.yml",
+      "lines": "21-23,43,52",
+      "shows": "Hard-coded Keycloak admin/DB and MySQL root passwords"
+    },
+    {
+      "id": "E-07",
+      "path": "docker-compose/mysql/privileges.sql",
+      "lines": "1-2",
+      "shows": "Shared app DB user with CREATE/ALTER/DROP/DML on *.*; password in clear"
+    },
+    {
+      "id": "E-08",
+      "path": "docker-compose/mysql/privileges.sql",
+      "lines": "5-8",
+      "shows": "Four logical schemas on one MySQL instance"
+    },
+    {
+      "id": "E-09",
+      "path": "docker-compose/keycloak/realm-export.json",
+      "lines": "29,38",
+      "shows": "sslRequired=external; bruteForceProtected=false"
+    },
+    {
+      "id": "E-10",
+      "path": "docker-compose/keycloak/realm-export.json",
+      "lines": "686-873",
+      "shows": "Business clients with directAccessGrantsEnabled=true, wildcard redirect URIs '/*', committed client secrets (lines 759, 861)"
+    },
+    {
+      "id": "E-11",
+      "path": "internet-banking-config-server/src/main/resources/application.yml",
+      "lines": "1-10",
+      "shows": "Config Server git backend = third-party public repo JavatoDev-com/internet-banking-microservices-configurations"
+    },
+    {
+      "id": "E-12",
+      "path": "*/src/main/resources/bootstrap*.yml",
+      "lines": "-",
+      "shows": "Only app name + config URI per profile; default profile hard-codes 192.168.1.5"
+    },
+    {
+      "id": "E-13",
+      "path": "[external] internet-banking-api-gateway*.yml",
+      "lines": "routes",
+      "shows": "Gateway routes /user/**, /fund-transfer/**, /banking-core/**, /utility-payment/** (StripPrefix=1, lb://)"
+    },
+    {
+      "id": "E-14",
+      "path": "[external] *-service.yml",
+      "lines": "ddl-auto / management",
+      "shows": "ddl-auto: update for user, fund-transfer, utility-payment; actuator exposure '*' for gateway & fund-transfer"
+    },
+    {
+      "id": "E-15",
+      "path": "internet-banking-api-gateway/src/main/java/com/javatodev/finance/configuration/security/SecurityConfiguration.java",
+      "lines": "24-35",
+      "shows": "permitAll on register + all actuator paths; anyExchange().authenticated(); CSRF disabled; JWT via JWKS"
+    },
+    {
+      "id": "E-16",
+      "path": "internet-banking-api-gateway/src/main/java/com/javatodev/finance/configuration/GatewayConfiguration.java",
+      "lines": "18-28",
+      "shows": "GlobalFilter builds mutated request with X-Auth-Id but returns original exchange"
+    },
+    {
+      "id": "E-17",
+      "path": "internet-banking-user-service/src/main/java/com/javatodev/finance/configuration/filter/AppAuthUserFilter.java",
+      "lines": "21-33",
+      "shows": "Services trust X-Auth-Id header for audit identity; no JWT validation downstream"
+    },
+    {
+      "id": "E-18",
+      "path": "core-banking-service/src/main/java/com/javatodev/finance/service/TransactionService.java",
+      "lines": "35-46",
+      "shows": "fundTransfer: reads accounts, validateBalance, internalFundTransfer"
+    },
+    {
+      "id": "E-19",
+      "path": "core-banking-service/src/main/java/com/javatodev/finance/service/TransactionService.java",
+      "lines": "77-81",
+      "shows": "validateBalance only checks balance<0 or balance<amount (no amount>0, no status check)"
+    },
+    {
+      "id": "E-20",
+      "path": "core-banking-service/src/main/java/com/javatodev/finance/service/TransactionService.java",
+      "lines": "63-64,90-91,99-100",
+      "shows": "availableBalance recomputed from already-updated actualBalance -> double adjustment"
+    },
+    {
+      "id": "E-21",
+      "path": "core-banking-service/src/main/java/com/javatodev/finance/service/TransactionService.java",
+      "lines": "48-75",
+      "shows": "utilPayment: debit only; comment 'we can call third party API...'; no settlement credit"
+    },
+    {
+      "id": "E-22",
+      "path": "core-banking-service/src/main/java/com/javatodev/finance/model/entity/TransactionEntity.java",
+      "lines": "17-35",
+      "shows": "Ledger row: amount, type, reference, transactionId; @OneToOne(cascade=ALL) to account; no timestamp"
+    },
+    {
+      "id": "E-23",
+      "path": "core-banking-service/src/main/java/com/javatodev/finance/model/entity/BankAccountEntity.java",
+      "lines": "16-37",
+      "shows": "Mutable balances; no @Version"
+    },
+    {
+      "id": "E-24",
+      "path": "core-banking-service/src/main/resources/db/migration/",
+      "lines": "V1.0.*",
+      "shows": "Flyway schema (user, account, utility_account, transaction) + temp_data seed migration"
+    },
+    {
+      "id": "E-25",
+      "path": "core-banking-service/src/main/java/com/javatodev/finance/model/{AccountType,AccountStatus,TransactionType}.java",
+      "lines": "-",
+      "shows": "Domain enums"
+    },
+    {
+      "id": "E-26",
+      "path": "core-banking-service/src/main/java/com/javatodev/finance/controller/*.java",
+      "lines": "-",
+      "shows": "Core APIs: account lookup, fund-transfer, util-payment, user lookup"
+    },
+    {
+      "id": "E-27",
+      "path": "*/src/main/java/com/javatodev/finance/exception/GlobalExceptionHandler.java",
+      "lines": "core:27 ft:24 user:27 up:27",
+      "shows": "Generic handler returns 400 'Exception occur inside API ' + e"
+    },
+    {
+      "id": "E-28",
+      "path": "internet-banking-user-service/src/main/java/com/javatodev/finance/controller/UserController.java",
+      "lines": "28-55",
+      "shows": "register (logs request.toString incl. password, line 31), PATCH update status (no role check), list, read"
+    },
+    {
+      "id": "E-29",
+      "path": "internet-banking-user-service/src/main/java/com/javatodev/finance/service/UserService.java",
+      "lines": "33-111",
+      "shows": "Registration flow (Keycloak search, core lookup, create disabled user, get(0) line 67); readUsers N+1 (line 84); approve enables Keycloak user"
+    },
+    {
+      "id": "E-30",
+      "path": "internet-banking-user-service/src/main/java/com/javatodev/finance/service/KeycloakUserService.java",
+      "lines": "36",
+      "shows": "users().search(email) - fuzzy search"
+    },
+    {
+      "id": "E-31",
+      "path": "internet-banking-user-service/src/main/java/com/javatodev/finance/configuration/keycloak/KeycloakProperties.java",
+      "lines": "25-40",
+      "shows": "Static lazily-initialised Keycloak client (client_credentials)"
+    },
+    {
+      "id": "E-32",
+      "path": "internet-banking-user-service/src/main/java/com/javatodev/finance/model/dto/User.java",
+      "lines": "1-20",
+      "shows": "@Data DTO including password field"
+    },
+    {
+      "id": "E-33",
+      "path": "internet-banking-fund-transfer-service/src/main/java/com/javatodev/finance/service/FundTransferService.java",
+      "lines": "31-51",
+      "shows": "Save PENDING -> Feign core -> SUCCESS; no failure handling; findAll unscoped (line 50)"
+    },
+    {
+      "id": "E-34",
+      "path": "internet-banking-utility-payment-service/src/main/java/com/javatodev/finance/service/UtilityPaymentService.java",
+      "lines": "31-53",
+      "shows": "Save PROCESSING -> Feign core -> SUCCESS; no failure handling; findAll unscoped (line 50)"
+    },
+    {
+      "id": "E-35",
+      "path": "internet-banking-fund-transfer-service/src/main/java/com/javatodev/finance/configuration/CustomFeignClientConfiguration.java",
+      "lines": "13",
+      "shows": "Feign Logger.Level.FULL"
+    },
+    {
+      "id": "E-36",
+      "path": "*/src/main/java/com/javatodev/finance/model/dto/AuditAware.java",
+      "lines": "-",
+      "shows": "createdBy/Date, modifiedBy/Date, @Version on channel entities"
+    },
+    {
+      "id": "E-37",
+      "path": "*/build.gradle",
+      "lines": "-",
+      "shows": "Spring Boot 3.2.4, Spring Cloud 2023.0.0, springdoc webflux-ui 2.1.0, Keycloak admin 24.0.4, Flyway 10.12.0, MySQL connector 8.4.0"
+    },
+    {
+      "id": "E-38",
+      "path": "*/gradle/wrapper/gradle-wrapper.properties",
+      "lines": "-",
+      "shows": "7 independent Gradle 8.6 builds; no root project"
+    },
+    {
+      "id": "E-39",
+      "path": "*/Dockerfile",
+      "lines": "-",
+      "shows": "eclipse-temurin:21.0.2_13-jre-alpine; ADD prebuilt jar; no USER; wait-for-it.sh"
+    },
+    {
+      "id": "E-40",
+      "path": "*/src/test/**",
+      "lines": "-",
+      "shows": "18 unit tests in core-banking (Transaction 9, Account 6, User 3); contextLoads only elsewhere"
+    },
+    {
+      "id": "E-41",
+      "path": "internet-banking-user-service/src/test/resources/application.yml",
+      "lines": "35",
+      "shows": "Keycloak client secret committed in test config"
+    },
+    {
+      "id": "E-42",
+      "path": "postman_collection/JAVA_TO_DEV_MICROSERVICES.postman_collection.json",
+      "lines": "-",
+      "shows": "14 requests; uses /core/** and /payment/** and /bank-user paths that do not match gateway routes / controller paths"
+    },
+    {
+      "id": "E-43",
+      "path": "git log",
+      "lines": "-",
+      "shows": "194 commits 2021-05-09..2026; last commit removed GitHub Actions workflows; no .github/workflows present"
+    },
+    {
+      "id": "E-44",
+      "path": "*/src/main/java/com/javatodev/finance/model/**/AccountResponse.java",
+      "lines": "9",
+      "shows": "Account number typed Long in fund-transfer & utility-payment vs String in core"
+    },
+    {
+      "id": "E-45",
+      "path": "core-banking-service/src/main/resources/messages*.properties",
+      "lines": "-",
+      "shows": "i18n: default + French messages only"
+    },
+    {
+      "id": "E-46",
+      "path": "draw_io/centralized_configuration.drawio",
+      "lines": "-",
+      "shows": "Only architecture diagram in repo (centralised configuration)"
+    },
+    {
+      "id": "E-47",
+      "path": "*/src/main/java/com/javatodev/finance/controller/*Controller.java",
+      "lines": "-",
+      "shows": "springdoc @Tag/@Operation annotations (OpenAPI generated at runtime; no static spec file)"
+    },
+    {
+      "id": "E-48",
+      "path": ".github/FUNDING.yml",
+      "lines": "-",
+      "shows": "Patreon funding file of original author"
+    }
+  ]
+}

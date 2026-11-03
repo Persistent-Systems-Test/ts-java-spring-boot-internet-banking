@@ -1,0 +1,2063 @@
+{
+  "meta": {
+    "repository": "Persistent-Systems-Test/ts-java-spring-boot-internet-banking",
+    "product": "Internet Banking Concept Microservices",
+    "baseline_branch": "main",
+    "baseline_commit": "fa1c445",
+    "due_diligence_branch": "ai-due-diligence/internet-banking-concept-microservices",
+    "assessment_date": "2026-11-03",
+    "generator": "Devin (AI)"
+  },
+  "executive": {
+    "verdict": "Well-structured but prototype-grade Spring Cloud microservices system. Keep the skeleton; re-engineer money movement, authorisation, secrets, delivery pipeline and operability.",
+    "overall_score": 1.8,
+    "headline": [
+      "Architecture: sensible decomposition (gateway, channel services, core ledger, discovery, config, tracing) but synchronous non-atomic distributed writes and core exposed at the edge (TDD-ARC-01, TDD-ARC-02).",
+      "Security: 8 Critical findings incl. committed secrets, broken object/function-level authorisation, header-trust model, password logging, third-party config supply chain (TDD-SEC-*).",
+      "Data integrity: no amount validation, double-adjusted balances, no locking, no idempotency, mutable single-entry ledger (TDD-DAT-*).",
+      "Engineering maturity: no CI/CD, 18 unit tests in one service, no IaC/Kubernetes despite README claims (TDD-ENG-*, TDD-INF-*).",
+      "Stack currency: Spring Boot 3.2.4 / Spring Cloud 2023.0.0 and Keycloak 23 are past their open-source support windows per vendor policy (to be re-verified) (TDD-STK-01, STK-02).",
+      "Build/test results and dependency CVE scan could not be produced in the assessment environment (Maven Central HTTP 429) - limitation, not a code defect."
+    ],
+    "recommendation": "Reuse as accelerator. Phase 0 stabilisation (~4-6 weeks, ~3 engineers) closes all Critical items; Phase 1-2 (~6-8 months, 6-8 engineers) reaches bank-pilot readiness. Effort figures are indicative assessor estimates."
+  },
+  "scorecard": [
+    [
+      "Technology stack",
+      2.5,
+      "Modern Java 21 / Spring; framework line out of OSS support; springdoc mismatch"
+    ],
+    [
+      "Application architecture",
+      3.0,
+      "Good bounded contexts; sync-only; no saga/outbox"
+    ],
+    [
+      "Code quality",
+      2.5,
+      "Readable, layered; duplication; no validation; raw ResponseEntity"
+    ],
+    [
+      "Security",
+      1.0,
+      "8 Critical / 8 High"
+    ],
+    [
+      "Data architecture",
+      1.0,
+      "Ledger integrity defects; ddl-auto update; seed data in prod migration"
+    ],
+    [
+      "Infrastructure & deployment",
+      1.5,
+      "Compose only; no IaC/K8s/CI; root containers"
+    ],
+    [
+      "Scalability & performance",
+      1.5,
+      "Stateless services but no locking, caching, async, perf tests"
+    ],
+    [
+      "Reliability & operability",
+      1.5,
+      "No timeouts/circuit breakers/HA/DR; tracing present"
+    ],
+    [
+      "Engineering maturity",
+      1.5,
+      "No CI/CD; minimal tests; good README"
+    ]
+  ],
+  "stack": [
+    [
+      "Language/runtime",
+      "Java (Temurin JRE Alpine image)",
+      "21 (image 21.0.2_13)",
+      "E-37, E-39",
+      "Java 21 is an LTS release; image patch level is old",
+      "High"
+    ],
+    [
+      "Framework",
+      "Spring Boot",
+      "3.2.4",
+      "E-37",
+      "3.2.x open-source support ended per Spring support policy (re-verify at spring.io)",
+      "Medium"
+    ],
+    [
+      "Framework",
+      "Spring Cloud",
+      "2023.0.0",
+      "E-37",
+      "Release train paired with Boot 3.2; OSS support ended (re-verify)",
+      "Medium"
+    ],
+    [
+      "Gateway",
+      "Spring Cloud Gateway (WebFlux)",
+      "BOM",
+      "E-15",
+      "Current project",
+      "High"
+    ],
+    [
+      "Discovery",
+      "Netflix Eureka",
+      "BOM",
+      "E-37",
+      "Maintained in Spring Cloud; redundant on Kubernetes",
+      "High"
+    ],
+    [
+      "Config",
+      "Spring Cloud Config Server (git)",
+      "BOM",
+      "E-11",
+      "Backed by third-party repo",
+      "High"
+    ],
+    [
+      "Integration",
+      "OpenFeign (+ feign-okhttp 13.2.1 in user svc)",
+      "BOM",
+      "E-37",
+      "Spring Cloud OpenFeign is feature-complete/maintenance mode",
+      "Medium"
+    ],
+    [
+      "Persistence",
+      "Spring Data JPA / Hibernate",
+      "BOM",
+      "E-37",
+      "Current",
+      "High"
+    ],
+    [
+      "Database",
+      "MySQL server / Connector-J",
+      "8.4.0 / 8.4.0",
+      "E-05, E-37",
+      "8.4 is an LTS line",
+      "Medium"
+    ],
+    [
+      "Database",
+      "PostgreSQL (Keycloak only)",
+      "15",
+      "E-05",
+      "Supported major",
+      "Medium"
+    ],
+    [
+      "Migrations",
+      "Flyway (core only)",
+      "10.12.0",
+      "E-37",
+      "Current major",
+      "High"
+    ],
+    [
+      "Identity",
+      "Keycloak server",
+      "23.0.7 (start-dev)",
+      "E-05",
+      "Superseded by later majors; no longer patched (re-verify)",
+      "Medium"
+    ],
+    [
+      "Identity",
+      "Keycloak admin client",
+      "24.0.4",
+      "E-37",
+      "Version-skewed vs server 23",
+      "High"
+    ],
+    [
+      "Security",
+      "Spring Security OAuth2 resource server",
+      "BOM (gateway only)",
+      "E-15",
+      "Only at edge",
+      "High"
+    ],
+    [
+      "Observability",
+      "Micrometer Tracing (Brave) + Zipkin reporter, Actuator",
+      "BOM / Zipkin 3",
+      "E-37, E-14",
+      "Current approach for Boot 3",
+      "High"
+    ],
+    [
+      "API docs",
+      "springdoc-openapi-starter-webflux-ui",
+      "2.1.0",
+      "E-37",
+      "Wrong flavour for Spring MVC services; outdated",
+      "High"
+    ],
+    [
+      "Messaging",
+      "RabbitMQ",
+      "-",
+      "E-03",
+      "Documented only; not implemented",
+      "High"
+    ],
+    [
+      "Code-gen",
+      "Lombok",
+      "BOM",
+      "E-37",
+      "Current",
+      "High"
+    ],
+    [
+      "Build",
+      "Gradle wrapper x7",
+      "8.6",
+      "E-38",
+      "No root build / version catalog",
+      "High"
+    ],
+    [
+      "Container",
+      "Docker / docker-compose",
+      "compose 3.6",
+      "E-05, E-39",
+      "No orchestrator manifests",
+      "High"
+    ],
+    [
+      "Testing",
+      "JUnit 5, Mockito, H2",
+      "BOM / 2.2.224",
+      "E-40",
+      "Unit-level only",
+      "High"
+    ]
+  ],
+  "findings": [
+    {
+      "id": "TDD-STK-01",
+      "domain": "A. Technology Stack",
+      "title": "Spring Boot 3.2.4 / Spring Cloud 2023.0.0 outside OSS support window",
+      "description": "All services pin Boot 3.2.4 and Cloud 2023.0.0.",
+      "evidence": [
+        "E-37"
+      ],
+      "technical_impact": "No upstream security patches without commercial support.",
+      "business_impact": "Exposure to unpatched CVEs; audit findings.",
+      "severity": "High",
+      "remediation": "Upgrade to a supported Boot 3.x/Cloud release train; add Renovate/Dependabot.",
+      "complexity": "Medium",
+      "priority": "P1",
+      "confidence": "Medium",
+      "pdd_refs": [
+        "PDD-R-03"
+      ]
+    },
+    {
+      "id": "TDD-STK-02",
+      "domain": "A. Technology Stack",
+      "title": "Keycloak 23 server with 24.x admin client",
+      "description": "Server 23.0.7 runs in start-dev; admin client 24.0.4.",
+      "evidence": [
+        "E-05",
+        "E-37"
+      ],
+      "technical_impact": "Unsupported IdP version; client/server skew.",
+      "business_impact": "Identity-layer vulnerabilities affect all customers.",
+      "severity": "High",
+      "remediation": "Upgrade Keycloak (production mode) and align admin client.",
+      "complexity": "Medium",
+      "priority": "P1",
+      "confidence": "Medium",
+      "pdd_refs": [
+        "PDD-G-02"
+      ]
+    },
+    {
+      "id": "TDD-STK-03",
+      "domain": "A. Technology Stack",
+      "title": "springdoc WebFlux UI starter used in Spring MVC services",
+      "description": "springdoc-openapi-starter-webflux-ui 2.1.0 declared in core, user, fund-transfer, utility (servlet apps).",
+      "evidence": [
+        "E-37"
+      ],
+      "technical_impact": "Swagger UI may not register; mixed reactive deps on classpath.",
+      "business_impact": "Integrator documentation unreliable.",
+      "severity": "Low",
+      "remediation": "Use springdoc-openapi-starter-webmvc-ui matching Boot version.",
+      "complexity": "Low",
+      "priority": "P2",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-A-03"
+      ]
+    },
+    {
+      "id": "TDD-STK-04",
+      "domain": "A. Technology Stack",
+      "title": "Documented technologies not implemented",
+      "description": "README lists RabbitMQ, Prometheus, Kubernetes, Sleuth; none present in code (Sleuth replaced by Micrometer).",
+      "evidence": [
+        "E-03",
+        "E-37"
+      ],
+      "technical_impact": "Architecture docs misrepresent system.",
+      "business_impact": "Misleading due-diligence/marketing claims.",
+      "severity": "Medium",
+      "remediation": "Correct README; implement only if roadmap requires.",
+      "complexity": "Low",
+      "priority": "P2",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-G-01"
+      ]
+    },
+    {
+      "id": "TDD-ARC-01",
+      "domain": "B. Architecture",
+      "title": "Synchronous, non-atomic distributed write for payments",
+      "description": "Orchestrator saves PENDING, calls core via Feign, then saves SUCCESS; no saga, outbox or compensation.",
+      "evidence": [
+        "E-33",
+        "E-34"
+      ],
+      "technical_impact": "Partial failures leave channel and ledger inconsistent.",
+      "business_impact": "Lost/duplicate payments; reconciliation cost.",
+      "severity": "Critical",
+      "remediation": "Saga state machine + transactional outbox + idempotent ledger API + reconciliation job.",
+      "complexity": "High",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-F-08",
+        "PDD-F-09"
+      ]
+    },
+    {
+      "id": "TDD-ARC-02",
+      "domain": "B. Architecture",
+      "title": "Core ledger exposed through public gateway route",
+      "description": "Route /banking-core/** -> core-banking-service; gateway only requires authentication.",
+      "evidence": [
+        "E-13",
+        "E-15"
+      ],
+      "technical_impact": "Ledger API reachable from the internet.",
+      "business_impact": "Unrecorded money movement.",
+      "severity": "Critical",
+      "remediation": "Remove route; internal network only; service-to-service auth.",
+      "complexity": "Low",
+      "priority": "P0",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-F-03"
+      ]
+    },
+    {
+      "id": "TDD-ARC-03",
+      "domain": "B. Architecture",
+      "title": "No authorisation tier between edge and services",
+      "description": "Gateway enforces 'authenticated'; downstream services have no Spring Security and trust X-Auth-Id.",
+      "evidence": [
+        "E-15",
+        "E-17"
+      ],
+      "technical_impact": "Every resource vulnerable to IDOR; zero-trust absent.",
+      "business_impact": "Data breach and fraud.",
+      "severity": "Critical",
+      "remediation": "Every service as OAuth2 resource server; entitlement/policy layer.",
+      "complexity": "Medium",
+      "priority": "P0",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-F-02",
+        "PDD-F-05",
+        "PDD-F-06"
+      ]
+    },
+    {
+      "id": "TDD-ARC-04",
+      "domain": "B. Architecture",
+      "title": "Shared MySQL server and over-privileged shared DB user",
+      "description": "Four schemas on one instance; one app user with DDL+DML on *.*.",
+      "evidence": [
+        "E-07",
+        "E-08"
+      ],
+      "technical_impact": "Blast radius across services; no data-ownership enforcement.",
+      "business_impact": "One compromise exposes all data.",
+      "severity": "High",
+      "remediation": "Per-service least-privilege users; separate ledger instance in prod.",
+      "complexity": "Medium",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-S-02"
+      ]
+    },
+    {
+      "id": "TDD-ARC-05",
+      "domain": "B. Architecture",
+      "title": "No asynchronous/event backbone",
+      "description": "No broker or domain events though README describes RabbitMQ notifications.",
+      "evidence": [
+        "E-02",
+        "E-03"
+      ],
+      "technical_impact": "Tight temporal coupling; no notification/audit stream.",
+      "business_impact": "No customer notifications; harder integration.",
+      "severity": "Medium",
+      "remediation": "Introduce Kafka/RabbitMQ with outbox-published domain events.",
+      "complexity": "Medium",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-G-01"
+      ]
+    },
+    {
+      "id": "TDD-ARC-06",
+      "domain": "B. Architecture",
+      "title": "No adapter / anti-corruption layer for real core and payment rails",
+      "description": "Core is a simulated ledger with bespoke REST API.",
+      "evidence": [
+        "E-26",
+        "E-21"
+      ],
+      "technical_impact": "Replacing core requires changes in every orchestrator.",
+      "business_impact": "Unbounded first-integration effort.",
+      "severity": "High",
+      "remediation": "Define ports/adapters (CBS, payment hub, biller) behind stable internal contracts.",
+      "complexity": "High",
+      "priority": "P2",
+      "confidence": "Medium",
+      "pdd_refs": [
+        "PDD-A-02",
+        "PDD-F-10"
+      ]
+    },
+    {
+      "id": "TDD-ARC-07",
+      "domain": "B. Architecture",
+      "title": "Gateway identity-propagation filter likely ineffective",
+      "description": "GlobalFilter calls exchange.getRequest().mutate().header(...).build() but returns the original exchange, so X-Auth-Id is not added; client-supplied X-Auth-Id passes through.",
+      "evidence": [
+        "E-16"
+      ],
+      "technical_impact": "Audit identity missing or spoofable.",
+      "business_impact": "Untrustworthy audit trail.",
+      "severity": "High",
+      "remediation": "Return exchange.mutate().request(mutated).build(); strip inbound X-Auth-* headers. Confirm at runtime.",
+      "complexity": "Low",
+      "priority": "P0",
+      "confidence": "Medium",
+      "pdd_refs": [
+        "PDD-G-02"
+      ]
+    },
+    {
+      "id": "TDD-ARC-08",
+      "domain": "B. Architecture",
+      "title": "Platform duplication: Eureka + Config Server + static IPs",
+      "description": "Discovery and config via Spring Cloud plus static Docker IPs in config.",
+      "evidence": [
+        "E-05",
+        "E-12",
+        "E-14"
+      ],
+      "technical_impact": "Extra moving parts; brittle addressing.",
+      "business_impact": "Higher ops cost.",
+      "severity": "Medium",
+      "remediation": "On Kubernetes use native DNS/ConfigMaps/Secrets or Spring Cloud Kubernetes.",
+      "complexity": "Medium",
+      "priority": "P2",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-S-01"
+      ]
+    },
+    {
+      "id": "TDD-CQ-01",
+      "domain": "C. Code Quality",
+      "title": "Cross-cutting code duplicated in every service",
+      "description": "ApiRequestContext*, AppAuthUserFilter, AuditAware, BaseMapper, GlobalExceptionHandler, ErrorResponse copied per service.",
+      "evidence": [
+        "E-17",
+        "E-27",
+        "E-36"
+      ],
+      "technical_impact": "Fixes drift between services.",
+      "business_impact": "Slower, riskier change.",
+      "severity": "Medium",
+      "remediation": "Shared internal starter library.",
+      "complexity": "Medium",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-R-03"
+      ]
+    },
+    {
+      "id": "TDD-CQ-02",
+      "domain": "C. Code Quality",
+      "title": "No input validation layer",
+      "description": "Zero Bean Validation annotations in the codebase.",
+      "evidence": [
+        "E-19",
+        "E-28"
+      ],
+      "technical_impact": "Invalid data reaches domain logic.",
+      "business_impact": "Fraud and data quality issues.",
+      "severity": "Critical",
+      "remediation": "Bean Validation on all request DTOs + domain invariants.",
+      "complexity": "Low",
+      "priority": "P0",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-F-01",
+        "PDD-F-11"
+      ]
+    },
+    {
+      "id": "TDD-CQ-03",
+      "domain": "C. Code Quality",
+      "title": "Generic exception handler leaks internals and misuses HTTP 400",
+      "description": "handleException returns 'Exception occur inside API ' + e for all exceptions.",
+      "evidence": [
+        "E-27"
+      ],
+      "technical_impact": "Information disclosure; clients cannot distinguish errors.",
+      "business_impact": "Poor UX, support overhead.",
+      "severity": "High",
+      "remediation": "RFC 7807 ProblemDetail, correct status codes, correlation id.",
+      "complexity": "Low",
+      "priority": "P0",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-E-02"
+      ]
+    },
+    {
+      "id": "TDD-CQ-04",
+      "domain": "C. Code Quality",
+      "title": "Weakly-typed controllers and reflective mapping",
+      "description": "Raw ResponseEntity return types; BeanUtils.copyProperties mappers instantiated with new.",
+      "evidence": [
+        "E-26",
+        "E-33"
+      ],
+      "technical_impact": "Silent field mismatches; weak API contracts.",
+      "business_impact": "Integration defects.",
+      "severity": "Low",
+      "remediation": "Typed responses; MapStruct mappers as beans.",
+      "complexity": "Low",
+      "priority": "P2",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-A-03"
+      ]
+    },
+    {
+      "id": "TDD-CQ-05",
+      "domain": "C. Code Quality",
+      "title": "Incorrect JPA relationship on ledger row",
+      "description": "TransactionEntity.account mapped @OneToOne(cascade = ALL) for a many-to-one relationship.",
+      "evidence": [
+        "E-22"
+      ],
+      "technical_impact": "Cascade from transaction to account can persist/delete accounts unintentionally.",
+      "business_impact": "Ledger corruption risk.",
+      "severity": "Medium",
+      "remediation": "@ManyToOne without cascade.",
+      "complexity": "Low",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-F-04"
+      ]
+    },
+    {
+      "id": "TDD-CQ-06",
+      "domain": "C. Code Quality",
+      "title": "Type mismatch for account number across services",
+      "description": "AccountResponse.number is Long in fund-transfer and utility-payment, String in core.",
+      "evidence": [
+        "E-44"
+      ],
+      "technical_impact": "Leading zeros / alphanumeric numbers break.",
+      "business_impact": "Failures with real CBS formats.",
+      "severity": "Low",
+      "remediation": "Use String consistently; shared contract.",
+      "complexity": "Low",
+      "priority": "P2",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-A-03"
+      ]
+    },
+    {
+      "id": "TDD-CQ-07",
+      "domain": "C. Code Quality",
+      "title": "Non-thread-safe static Keycloak client and fuzzy user search",
+      "description": "Static lazily-initialised Keycloak instance; users().search(email) then get(0).",
+      "evidence": [
+        "E-31",
+        "E-30",
+        "E-29"
+      ],
+      "technical_impact": "Race on init; wrong user matched for similar emails.",
+      "business_impact": "Mis-linked identities.",
+      "severity": "Medium",
+      "remediation": "Spring-managed singleton bean; exact email search; use created id from Location header.",
+      "complexity": "Low",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-F-12"
+      ]
+    },
+    {
+      "id": "TDD-CQ-08",
+      "domain": "C. Code Quality",
+      "title": "No static analysis or formatting standards",
+      "description": "No Checkstyle/SpotBugs/PMD/Spotless/Sonar configuration.",
+      "evidence": [
+        "E-38"
+      ],
+      "technical_impact": "Quality regressions undetected.",
+      "business_impact": "Higher defect rate.",
+      "severity": "Medium",
+      "remediation": "Add Spotless + SpotBugs/Sonar gates in CI.",
+      "complexity": "Low",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": []
+    },
+    {
+      "id": "TDD-SEC-01",
+      "domain": "D. Security",
+      "title": "Secrets committed to version control",
+      "description": "MySQL root/app, Keycloak admin/DB passwords, two Keycloak client secrets, test client secret, published test user password.",
+      "evidence": [
+        "E-06",
+        "E-07",
+        "E-10",
+        "E-41",
+        "E-02"
+      ],
+      "technical_impact": "Credential compromise of any default deployment.",
+      "business_impact": "Account takeover, data breach.",
+      "severity": "Critical",
+      "remediation": "Rotate; secrets manager/K8s Secrets; gitleaks in CI; history purge if public.",
+      "complexity": "Low",
+      "priority": "P0",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-R-05"
+      ]
+    },
+    {
+      "id": "TDD-SEC-02",
+      "domain": "D. Security",
+      "title": "Broken object-level authorisation (OWASP API1)",
+      "description": "No ownership checks on transfer source, account lookup, history.",
+      "evidence": [
+        "E-33",
+        "E-34",
+        "E-26"
+      ],
+      "technical_impact": "Horizontal privilege escalation.",
+      "business_impact": "Fraud and privacy breach.",
+      "severity": "Critical",
+      "remediation": "Derive customer from validated JWT; entitlement checks; scoped queries.",
+      "complexity": "Medium",
+      "priority": "P0",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-F-02",
+        "PDD-F-05"
+      ]
+    },
+    {
+      "id": "TDD-SEC-03",
+      "domain": "D. Security",
+      "title": "Broken function-level authorisation (OWASP API5)",
+      "description": "Status update endpoint callable by any authenticated user; no roles in realm.",
+      "evidence": [
+        "E-28",
+        "E-10"
+      ],
+      "technical_impact": "Vertical privilege escalation.",
+      "business_impact": "Self-approval of accounts.",
+      "severity": "Critical",
+      "remediation": "Realm roles + @PreAuthorize + maker-checker.",
+      "complexity": "Low",
+      "priority": "P0",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-F-06"
+      ]
+    },
+    {
+      "id": "TDD-SEC-04",
+      "domain": "D. Security",
+      "title": "Header-based identity trusted; internal ports published",
+      "description": "Services read X-Auth-Id without JWT validation; compose publishes 8083-8085, 8092, 3306 on host.",
+      "evidence": [
+        "E-17",
+        "E-05"
+      ],
+      "technical_impact": "Gateway bypass and identity spoofing.",
+      "business_impact": "Untraceable fraudulent actions.",
+      "severity": "Critical",
+      "remediation": "Resource server per service; publish only gateway port; strip inbound auth headers.",
+      "complexity": "Low",
+      "priority": "P0",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-F-02"
+      ]
+    },
+    {
+      "id": "TDD-SEC-05",
+      "domain": "D. Security",
+      "title": "Plain-text password written to logs",
+      "description": "UserController logs request.toString(); Lombok @Data User includes password.",
+      "evidence": [
+        "E-28",
+        "E-32"
+      ],
+      "technical_impact": "Credential exposure in log stores.",
+      "business_impact": "Regulatory breach; account takeover.",
+      "severity": "Critical",
+      "remediation": "Separate request DTO; @ToString.Exclude; log redaction policy.",
+      "complexity": "Low",
+      "priority": "P0",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-F-06"
+      ]
+    },
+    {
+      "id": "TDD-SEC-06",
+      "domain": "D. Security",
+      "title": "Supply chain: third-party config repo and images",
+      "description": "Config Server pulls from JavatoDev-com public repo; compose uses javatodev/* images.",
+      "evidence": [
+        "E-11",
+        "E-05"
+      ],
+      "technical_impact": "Third party controls routes, DB URLs and binaries.",
+      "business_impact": "Full compromise possible via upstream change.",
+      "severity": "Critical",
+      "remediation": "Org-owned private config; build/sign images in own CI; SBOM.",
+      "complexity": "Low",
+      "priority": "P0",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-R-01",
+        "PDD-S-01"
+      ]
+    },
+    {
+      "id": "TDD-SEC-07",
+      "domain": "D. Security",
+      "title": "No input validation (OWASP API3/API6) - security view",
+      "description": "Negative amounts and arbitrary fields accepted; mass-assignment via BeanUtils.copyProperties from request DTOs.",
+      "evidence": [
+        "E-19",
+        "E-33"
+      ],
+      "technical_impact": "Business-logic abuse.",
+      "business_impact": "Financial loss.",
+      "severity": "Critical",
+      "remediation": "Validation + explicit DTO-to-entity mapping.",
+      "complexity": "Low",
+      "priority": "P0",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-F-01"
+      ]
+    },
+    {
+      "id": "TDD-SEC-08",
+      "domain": "D. Security",
+      "title": "Actuator over-exposure",
+      "description": "Gateway and fund-transfer expose all actuator endpoints; gateway permits /actuator/** and /*/actuator/** unauthenticated.",
+      "evidence": [
+        "E-14",
+        "E-15"
+      ],
+      "technical_impact": "env/configprops/heapdump disclosure.",
+      "business_impact": "Secrets and PII leakage.",
+      "severity": "High",
+      "remediation": "Expose health/info/prometheus only; separate management port; auth.",
+      "complexity": "Low",
+      "priority": "P0",
+      "confidence": "High",
+      "pdd_refs": []
+    },
+    {
+      "id": "TDD-SEC-09",
+      "domain": "D. Security",
+      "title": "Keycloak not hardened",
+      "description": "start-dev, HTTP, sslRequired=external, brute-force off, no password policy, direct-access grants with wildcard redirect URIs.",
+      "evidence": [
+        "E-05",
+        "E-09",
+        "E-10"
+      ],
+      "technical_impact": "Credential stuffing, token theft.",
+      "business_impact": "Account takeover.",
+      "severity": "High",
+      "remediation": "Production mode with TLS, brute-force detection, password policy, MFA, auth-code+PKCE only, exact redirects.",
+      "complexity": "Medium",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-G-02"
+      ]
+    },
+    {
+      "id": "TDD-SEC-10",
+      "domain": "D. Security",
+      "title": "No transport encryption inside the system",
+      "description": "HTTP for Eureka/Config/Feign/Keycloak; JDBC URLs without TLS parameters.",
+      "evidence": [
+        "E-14",
+        "E-05"
+      ],
+      "technical_impact": "Traffic interception on shared networks.",
+      "business_impact": "Data-in-transit non-compliance.",
+      "severity": "Medium",
+      "remediation": "mTLS (mesh) or TLS per hop; MySQL sslMode=VERIFY_IDENTITY.",
+      "complexity": "Medium",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-G-02"
+      ]
+    },
+    {
+      "id": "TDD-SEC-11",
+      "domain": "D. Security",
+      "title": "No rate limiting or anti-automation",
+      "description": "Public register endpoint and payment endpoints unthrottled.",
+      "evidence": [
+        "E-15",
+        "E-13"
+      ],
+      "technical_impact": "Enumeration and brute-force.",
+      "business_impact": "Fraud, availability.",
+      "severity": "High",
+      "remediation": "Gateway RequestRateLimiter; CAPTCHA; velocity limits.",
+      "complexity": "Low",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-G-02"
+      ]
+    },
+    {
+      "id": "TDD-SEC-12",
+      "domain": "D. Security",
+      "title": "Sensitive data in logs (Feign FULL, DTO toString)",
+      "description": "Fund-transfer Feign Logger.Level.FULL; controllers log full request DTOs.",
+      "evidence": [
+        "E-35",
+        "E-33"
+      ],
+      "technical_impact": "Account numbers/amounts in logs.",
+      "business_impact": "Privacy non-compliance.",
+      "severity": "High",
+      "remediation": "BASIC logging; masking.",
+      "complexity": "Low",
+      "priority": "P0",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-F-05"
+      ]
+    },
+    {
+      "id": "TDD-SEC-13",
+      "domain": "D. Security",
+      "title": "Containers run as root; mutable image tags",
+      "description": "Dockerfiles lack USER; compose uses tags like openzipkin/zipkin:3, postgres:15.",
+      "evidence": [
+        "E-39",
+        "E-05"
+      ],
+      "technical_impact": "Container breakout impact; non-reproducible deploys.",
+      "business_impact": "Security audit failure.",
+      "severity": "High",
+      "remediation": "Non-root user, read-only FS, pinned digests, image scanning.",
+      "complexity": "Low",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": []
+    },
+    {
+      "id": "TDD-SEC-14",
+      "domain": "D. Security",
+      "title": "Dependency vulnerability status unknown",
+      "description": "No SCA tooling in repo; scan could not run in assessment (dependency download blocked).",
+      "evidence": [
+        "E-37",
+        "E-43"
+      ],
+      "technical_impact": "Unknown CVE exposure.",
+      "business_impact": "Unquantified security risk.",
+      "severity": "Medium",
+      "remediation": "OWASP Dependency-Check/Trivy in CI; SBOM.",
+      "complexity": "Low",
+      "priority": "P0",
+      "confidence": "High",
+      "pdd_refs": []
+    },
+    {
+      "id": "TDD-SEC-15",
+      "domain": "D. Security",
+      "title": "CSRF disabled at gateway",
+      "description": "csrf disabled - acceptable for pure bearer-token APIs only.",
+      "evidence": [
+        "E-15"
+      ],
+      "technical_impact": "Risk if cookie sessions/BFF introduced.",
+      "business_impact": "Low today.",
+      "severity": "Low",
+      "remediation": "Document decision; enable if cookies used.",
+      "complexity": "Low",
+      "priority": "P3",
+      "confidence": "High",
+      "pdd_refs": []
+    },
+    {
+      "id": "TDD-DAT-01",
+      "domain": "E. Data Architecture",
+      "title": "Available balance double-adjusted",
+      "description": "availableBalance computed from already-updated actualBalance on debit and credit.",
+      "evidence": [
+        "E-20"
+      ],
+      "technical_impact": "Ledger inconsistency.",
+      "business_impact": "Wrong customer balances.",
+      "severity": "Critical",
+      "remediation": "available = available -/+ amount; explicit holds.",
+      "complexity": "Low",
+      "priority": "P0",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-F-04"
+      ]
+    },
+    {
+      "id": "TDD-DAT-02",
+      "domain": "E. Data Architecture",
+      "title": "Lost updates under concurrency",
+      "description": "Read-modify-write on BankAccountEntity without @Version or SELECT ... FOR UPDATE.",
+      "evidence": [
+        "E-23",
+        "E-18"
+      ],
+      "technical_impact": "Concurrent debits can overdraw.",
+      "business_impact": "Financial loss.",
+      "severity": "Critical",
+      "remediation": "Pessimistic locking ordered by account id or optimistic @Version + retry; DB CHECK constraints.",
+      "complexity": "Medium",
+      "priority": "P0",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-F-01",
+        "PDD-F-04"
+      ]
+    },
+    {
+      "id": "TDD-DAT-03",
+      "domain": "E. Data Architecture",
+      "title": "Account status ignored in postings",
+      "description": "Status not checked in TransactionService.",
+      "evidence": [
+        "E-19",
+        "E-25"
+      ],
+      "technical_impact": "Invalid postings.",
+      "business_impact": "Regulatory breach.",
+      "severity": "High",
+      "remediation": "Status rules in ledger domain.",
+      "complexity": "Low",
+      "priority": "P0",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-F-07"
+      ]
+    },
+    {
+      "id": "TDD-DAT-04",
+      "domain": "E. Data Architecture",
+      "title": "No idempotency keys",
+      "description": "transactionId generated server-side per call; no unique client key.",
+      "evidence": [
+        "E-18",
+        "E-33"
+      ],
+      "technical_impact": "Duplicates on retry.",
+      "business_impact": "Double debits.",
+      "severity": "High",
+      "remediation": "Idempotency-Key persisted with unique constraint.",
+      "complexity": "Medium",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-F-09"
+      ]
+    },
+    {
+      "id": "TDD-DAT-05",
+      "domain": "E. Data Architecture",
+      "title": "Mutable single-entry ledger without timestamps",
+      "description": "Balances are mutable columns; transaction rows lack timestamps, status, balance-after; transaction_id not unique.",
+      "evidence": [
+        "E-22",
+        "E-24"
+      ],
+      "technical_impact": "No auditability or replay; weak integrity.",
+      "business_impact": "Audit/regulatory failure.",
+      "severity": "High",
+      "remediation": "Double-entry append-only journal with posted_at/value_date and unique ids.",
+      "complexity": "High",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-G-02",
+        "PDD-S-03"
+      ]
+    },
+    {
+      "id": "TDD-DAT-06",
+      "domain": "E. Data Architecture",
+      "title": "Hibernate ddl-auto: update in three services",
+      "description": "User, fund-transfer, utility-payment schemas managed by Hibernate auto-DDL.",
+      "evidence": [
+        "E-14"
+      ],
+      "technical_impact": "Uncontrolled schema drift.",
+      "business_impact": "Production outages/data loss.",
+      "severity": "High",
+      "remediation": "Flyway in all services; ddl-auto validate.",
+      "complexity": "Low",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": []
+    },
+    {
+      "id": "TDD-DAT-07",
+      "domain": "E. Data Architecture",
+      "title": "Seed data in production migration path",
+      "description": "V1.0.20210427174721__temp_data.sql inserts customers/accounts/billers.",
+      "evidence": [
+        "E-24"
+      ],
+      "technical_impact": "Fake data in every environment.",
+      "business_impact": "Ledger contamination.",
+      "severity": "High",
+      "remediation": "Move to test-only Flyway location.",
+      "complexity": "Low",
+      "priority": "P0",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-R-04"
+      ]
+    },
+    {
+      "id": "TDD-DAT-08",
+      "domain": "E. Data Architecture",
+      "title": "No currency, settlement or suspense accounts",
+      "description": "No currency column; utility payment has no credit leg.",
+      "evidence": [
+        "E-24",
+        "E-21"
+      ],
+      "technical_impact": "Ledger cannot balance.",
+      "business_impact": "Unreconcilable books.",
+      "severity": "Medium",
+      "remediation": "Currency + GL/settlement accounts.",
+      "complexity": "Medium",
+      "priority": "P2",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-F-10",
+        "PDD-S-03"
+      ]
+    },
+    {
+      "id": "TDD-DAT-09",
+      "domain": "E. Data Architecture",
+      "title": "No backup, retention or data-lifecycle evidence",
+      "description": "No backup scripts, retention policies, or archival in repository; volumes only.",
+      "evidence": [
+        "E-05"
+      ],
+      "technical_impact": "Data loss on host failure.",
+      "business_impact": "Business continuity risk.",
+      "severity": "High",
+      "remediation": "Define RPO/RTO; automated backups and PITR; retention policy.",
+      "complexity": "Medium",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-R-01"
+      ]
+    },
+    {
+      "id": "TDD-DAT-10",
+      "domain": "E. Data Architecture",
+      "title": "Unbounded pagination",
+      "description": "Pageable endpoints without max page size.",
+      "evidence": [
+        "E-26",
+        "E-33"
+      ],
+      "technical_impact": "Large queries / memory pressure.",
+      "business_impact": "Availability.",
+      "severity": "Low",
+      "remediation": "spring.data.web.pageable.max-page-size.",
+      "complexity": "Low",
+      "priority": "P2",
+      "confidence": "Medium",
+      "pdd_refs": []
+    },
+    {
+      "id": "TDD-INF-01",
+      "domain": "F. Infrastructure & Deployment",
+      "title": "No CI/CD pipeline",
+      "description": "Workflows removed in HEAD commit; no pipeline definitions.",
+      "evidence": [
+        "E-43"
+      ],
+      "technical_impact": "No automated build/test/scan/deploy.",
+      "business_impact": "Slow, risky releases.",
+      "severity": "High",
+      "remediation": "CI per service: build, test, SAST, SCA, secret scan, image build/scan/sign, deploy.",
+      "complexity": "Medium",
+      "priority": "P0",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-R-03"
+      ]
+    },
+    {
+      "id": "TDD-INF-02",
+      "domain": "F. Infrastructure & Deployment",
+      "title": "No Infrastructure-as-Code or Kubernetes manifests",
+      "description": "Only docker-compose; README claims Kubernetes.",
+      "evidence": [
+        "E-05",
+        "E-03"
+      ],
+      "technical_impact": "Not cloud-deployable reproducibly.",
+      "business_impact": "Deployment effort for every client.",
+      "severity": "High",
+      "remediation": "Helm/Kustomize; Terraform for cloud resources.",
+      "complexity": "Medium",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-S-02"
+      ]
+    },
+    {
+      "id": "TDD-INF-03",
+      "domain": "F. Infrastructure & Deployment",
+      "title": "Images built from host-prebuilt JARs",
+      "description": "Dockerfiles ADD build/libs/*.jar; no multi-stage build.",
+      "evidence": [
+        "E-39"
+      ],
+      "technical_impact": "Non-reproducible artefacts.",
+      "business_impact": "Supply-chain audit gaps.",
+      "severity": "Medium",
+      "remediation": "Multi-stage builds or Jib/Buildpacks in CI.",
+      "complexity": "Low",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": []
+    },
+    {
+      "id": "TDD-INF-04",
+      "domain": "F. Infrastructure & Deployment",
+      "title": "Environment config hard-codes developer IP and static IPs",
+      "description": "Default bootstrap uses 192.168.1.5; external config uses 172.25.0.x.",
+      "evidence": [
+        "E-12",
+        "E-14"
+      ],
+      "technical_impact": "Broken portability.",
+      "business_impact": "Deployment failures.",
+      "severity": "Medium",
+      "remediation": "12-factor env-var configuration; DNS names.",
+      "complexity": "Low",
+      "priority": "P0",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-S-01"
+      ]
+    },
+    {
+      "id": "TDD-INF-05",
+      "domain": "F. Infrastructure & Deployment",
+      "title": "Keycloak realm with secrets imported from JSON in dev mode",
+      "description": "Realm export with secrets mounted; start-dev --import-realm.",
+      "evidence": [
+        "E-05",
+        "E-10"
+      ],
+      "technical_impact": "Non-production IdP setup.",
+      "business_impact": "Security and stability risk.",
+      "severity": "High",
+      "remediation": "Keycloak Operator / realm-as-code with injected secrets.",
+      "complexity": "Medium",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-G-02"
+      ]
+    },
+    {
+      "id": "TDD-SCA-01",
+      "domain": "G. Scalability & Performance",
+      "title": "Stateless services scale horizontally but ledger concurrency unsafe",
+      "description": "Services hold no session state; scaling core increases lost-update risk (TDD-DAT-02).",
+      "evidence": [
+        "E-23",
+        "E-05"
+      ],
+      "technical_impact": "Scaling blocked by data integrity.",
+      "business_impact": "Throughput ceiling.",
+      "severity": "High",
+      "remediation": "Fix locking first, then HPA.",
+      "complexity": "Medium",
+      "priority": "P1",
+      "confidence": "Medium",
+      "pdd_refs": [
+        "PDD-S-02"
+      ]
+    },
+    {
+      "id": "TDD-SCA-02",
+      "domain": "G. Scalability & Performance",
+      "title": "N+1 calls to Keycloak when listing users",
+      "description": "readUsers performs one admin-API call per user.",
+      "evidence": [
+        "E-29"
+      ],
+      "technical_impact": "Latency grows with page size.",
+      "business_impact": "Slow back-office screens.",
+      "severity": "Medium",
+      "remediation": "Batch fetch or cache email locally.",
+      "complexity": "Low",
+      "priority": "P2",
+      "confidence": "High",
+      "pdd_refs": []
+    },
+    {
+      "id": "TDD-SCA-03",
+      "domain": "G. Scalability & Performance",
+      "title": "No caching layer",
+      "description": "No cache configuration for read-heavy lookups.",
+      "evidence": [
+        "E-26"
+      ],
+      "technical_impact": "Unnecessary DB load.",
+      "business_impact": "Higher infra cost.",
+      "severity": "Low",
+      "remediation": "Caffeine/Redis with TTL for biller/account metadata.",
+      "complexity": "Low",
+      "priority": "P3",
+      "confidence": "High",
+      "pdd_refs": []
+    },
+    {
+      "id": "TDD-SCA-04",
+      "domain": "G. Scalability & Performance",
+      "title": "No asynchronous processing",
+      "description": "All flows synchronous request/response.",
+      "evidence": [
+        "E-33",
+        "E-34"
+      ],
+      "technical_impact": "Latency coupling to core.",
+      "business_impact": "Poor resilience under load.",
+      "severity": "Medium",
+      "remediation": "Async for notifications/settlement via event bus.",
+      "complexity": "Medium",
+      "priority": "P2",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-G-01"
+      ]
+    },
+    {
+      "id": "TDD-SCA-05",
+      "domain": "G. Scalability & Performance",
+      "title": "No performance test assets or NFRs",
+      "description": "No load tests, no SLOs.",
+      "evidence": [
+        "E-40"
+      ],
+      "technical_impact": "Capacity unknown.",
+      "business_impact": "Cannot commit to SLAs.",
+      "severity": "Medium",
+      "remediation": "Define NFRs with stakeholders; k6/Gatling baselines.",
+      "complexity": "Low",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-C-02"
+      ]
+    },
+    {
+      "id": "TDD-REL-01",
+      "domain": "H. Reliability & Operability",
+      "title": "No timeouts, retries or circuit breakers",
+      "description": "No Resilience4j/Spring Cloud CircuitBreaker; Feign defaults.",
+      "evidence": [
+        "E-37",
+        "E-33"
+      ],
+      "technical_impact": "Cascading failures; thread exhaustion.",
+      "business_impact": "Outages.",
+      "severity": "High",
+      "remediation": "Resilience4j timeouts/circuit breakers; retries only for idempotent calls.",
+      "complexity": "Low",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-F-08"
+      ]
+    },
+    {
+      "id": "TDD-REL-02",
+      "domain": "H. Reliability & Operability",
+      "title": "Single instances of all stateful components",
+      "description": "One MySQL, one Keycloak, one Eureka, one Config Server, in-memory Zipkin.",
+      "evidence": [
+        "E-05"
+      ],
+      "technical_impact": "Single points of failure.",
+      "business_impact": "Downtime.",
+      "severity": "High",
+      "remediation": "HA pairs / managed services; clustered Keycloak.",
+      "complexity": "Medium",
+      "priority": "P2",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-R-01"
+      ]
+    },
+    {
+      "id": "TDD-REL-03",
+      "domain": "H. Reliability & Operability",
+      "title": "Startup ordering via wait-for-it; no health checks",
+      "description": "Compose entrypoints chain wait-for-it.sh; no healthcheck stanzas.",
+      "evidence": [
+        "E-05",
+        "E-39"
+      ],
+      "technical_impact": "Fragile startup; no self-healing.",
+      "business_impact": "Operational toil.",
+      "severity": "Medium",
+      "remediation": "Readiness/liveness probes on actuator health groups.",
+      "complexity": "Low",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": []
+    },
+    {
+      "id": "TDD-REL-04",
+      "domain": "H. Reliability & Operability",
+      "title": "Observability limited to tracing",
+      "description": "Tracing 100% sampled to in-memory Zipkin; no metrics registry, structured logs or alerting.",
+      "evidence": [
+        "E-14",
+        "E-37"
+      ],
+      "technical_impact": "Blind to errors and saturation.",
+      "business_impact": "Slow incident response.",
+      "severity": "Medium",
+      "remediation": "OpenTelemetry, Prometheus metrics, JSON logs with trace ids, alerting/SLOs.",
+      "complexity": "Medium",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-F-08"
+      ]
+    },
+    {
+      "id": "TDD-REL-05",
+      "domain": "H. Reliability & Operability",
+      "title": "No DR / business-continuity design",
+      "description": "No DR documentation or automation in repository.",
+      "evidence": [
+        "E-05"
+      ],
+      "technical_impact": "Unbounded recovery time.",
+      "business_impact": "Regulatory BCP non-compliance.",
+      "severity": "High",
+      "remediation": "Define RPO/RTO; multi-AZ; DR runbooks and tests.",
+      "complexity": "High",
+      "priority": "P2",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-G-02"
+      ]
+    },
+    {
+      "id": "TDD-ENG-01",
+      "domain": "I. Engineering Maturity",
+      "title": "Minimal automated tests",
+      "description": "18 unit tests in core (do not assert balances); contextLoads elsewhere; no integration/contract/E2E.",
+      "evidence": [
+        "E-40"
+      ],
+      "technical_impact": "Regressions undetected (e.g. TDD-DAT-01 passes tests).",
+      "business_impact": "Defects reach customers.",
+      "severity": "High",
+      "remediation": "Testcontainers, WireMock, contract tests, Newman/Karate E2E; JaCoCo gate.",
+      "complexity": "Medium",
+      "priority": "P0",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-F-04"
+      ]
+    },
+    {
+      "id": "TDD-ENG-02",
+      "domain": "I. Engineering Maturity",
+      "title": "Seven independent builds; no version catalog",
+      "description": "Each service has its own wrapper and duplicated versions.",
+      "evidence": [
+        "E-38",
+        "E-37"
+      ],
+      "technical_impact": "Version skew; slow upgrades.",
+      "business_impact": "Maintenance cost.",
+      "severity": "Medium",
+      "remediation": "Gradle multi-project + libs.versions.toml.",
+      "complexity": "Low",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": []
+    },
+    {
+      "id": "TDD-ENG-03",
+      "domain": "I. Engineering Maturity",
+      "title": "No release management or versioning",
+      "description": "All services 0.0.1-SNAPSHOT; README releases link to upstream repo.",
+      "evidence": [
+        "E-37",
+        "E-01"
+      ],
+      "technical_impact": "Untraceable deployments.",
+      "business_impact": "Change-management audit gaps.",
+      "severity": "Medium",
+      "remediation": "Semantic versioning, tagged releases, changelog.",
+      "complexity": "Low",
+      "priority": "P1",
+      "confidence": "High",
+      "pdd_refs": []
+    },
+    {
+      "id": "TDD-ENG-04",
+      "domain": "I. Engineering Maturity",
+      "title": "Documentation good for learning, thin for operations",
+      "description": "README + tutorial links + one diagram; no ADRs, runbooks or API specs.",
+      "evidence": [
+        "E-01",
+        "E-46"
+      ],
+      "technical_impact": "Onboarding of ops teams slow.",
+      "business_impact": "Support cost.",
+      "severity": "Low",
+      "remediation": "ADRs, runbooks, published OpenAPI.",
+      "complexity": "Low",
+      "priority": "P2",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-A-03"
+      ]
+    },
+    {
+      "id": "TDD-ENG-05",
+      "domain": "I. Engineering Maturity",
+      "title": "Developer API collection out of date",
+      "description": "Postman paths differ from gateway routes and controller paths.",
+      "evidence": [
+        "E-42"
+      ],
+      "technical_impact": "Manual testing friction.",
+      "business_impact": "Demo failures.",
+      "severity": "Low",
+      "remediation": "Regenerate collection from OpenAPI; run in CI.",
+      "complexity": "Low",
+      "priority": "P2",
+      "confidence": "High",
+      "pdd_refs": [
+        "PDD-A-03"
+      ]
+    }
+  ],
+  "technical_debt": [
+    [
+      "TD-01",
+      "Ledger integrity (validation, balance math, locking, status)",
+      "Design/code",
+      [
+        "TDD-CQ-02",
+        "TDD-DAT-01",
+        "TDD-DAT-02",
+        "TDD-DAT-03"
+      ],
+      "Financial loss on every defective posting",
+      3.5
+    ],
+    [
+      "TD-02",
+      "Distributed transaction design (saga/outbox/idempotency)",
+      "Architecture",
+      [
+        "TDD-ARC-01",
+        "TDD-DAT-04"
+      ],
+      "Reconciliation effort grows with volume",
+      6
+    ],
+    [
+      "TD-03",
+      "Authorisation model",
+      "Security/architecture",
+      [
+        "TDD-ARC-03",
+        "TDD-SEC-02",
+        "TDD-SEC-03",
+        "TDD-SEC-04"
+      ],
+      "Blocks any external exposure",
+      4
+    ],
+    [
+      "TD-04",
+      "Secrets and supply chain",
+      "Security/ops",
+      [
+        "TDD-SEC-01",
+        "TDD-SEC-06",
+        "TDD-INF-04"
+      ],
+      "Continuous compromise exposure",
+      3
+    ],
+    [
+      "TD-05",
+      "Duplicated cross-cutting code + build fragmentation",
+      "Code/build",
+      [
+        "TDD-CQ-01",
+        "TDD-ENG-02"
+      ],
+      "Every fix x4-7",
+      3
+    ],
+    [
+      "TD-06",
+      "Schema management (ddl-auto, seed data, ledger model)",
+      "Data",
+      [
+        "TDD-DAT-05",
+        "TDD-DAT-06",
+        "TDD-DAT-07"
+      ],
+      "Drift and audit gaps",
+      5
+    ],
+    [
+      "TD-07",
+      "Delivery pipeline & tests",
+      "Process",
+      [
+        "TDD-INF-01",
+        "TDD-ENG-01",
+        "TDD-CQ-08",
+        "TDD-SEC-14"
+      ],
+      "Regression risk on every change",
+      6
+    ],
+    [
+      "TD-08",
+      "Framework currency",
+      "Lifecycle",
+      [
+        "TDD-STK-01",
+        "TDD-STK-02",
+        "TDD-STK-03"
+      ],
+      "Rising upgrade cost; CVE exposure",
+      3
+    ],
+    [
+      "TD-09",
+      "Resilience & observability",
+      "Operability",
+      [
+        "TDD-REL-01",
+        "TDD-REL-03",
+        "TDD-REL-04"
+      ],
+      "Longer outages",
+      4
+    ],
+    [
+      "TD-10",
+      "Deployment platform (IaC/K8s/images)",
+      "Infrastructure",
+      [
+        "TDD-INF-02",
+        "TDD-INF-03",
+        "TDD-INF-05",
+        "TDD-SEC-13"
+      ],
+      "Manual per-client deployments",
+      6
+    ],
+    [
+      "TD-11",
+      "Minor code hygiene (typing, mapping, JPA relation, Keycloak client)",
+      "Code",
+      [
+        "TDD-CQ-04",
+        "TDD-CQ-05",
+        "TDD-CQ-06",
+        "TDD-CQ-07"
+      ],
+      "Latent bugs",
+      2
+    ]
+  ],
+  "risks": [
+    [
+      "TR-01",
+      "Fraudulent fund movement via API",
+      "High",
+      "Severe",
+      "Critical",
+      [
+        "TDD-SEC-02",
+        "TDD-SEC-07",
+        "TDD-ARC-02",
+        "TDD-DAT-02"
+      ],
+      "Phase-0 authz + validation + locking"
+    ],
+    [
+      "TR-02",
+      "Credential compromise from committed secrets",
+      "High",
+      "Severe",
+      "Critical",
+      [
+        "TDD-SEC-01",
+        "TDD-SEC-05"
+      ],
+      "Rotate, vault, redaction"
+    ],
+    [
+      "TR-03",
+      "Upstream supply-chain tampering (config/images)",
+      "Medium",
+      "Severe",
+      "Critical",
+      [
+        "TDD-SEC-06"
+      ],
+      "Internalise assets"
+    ],
+    [
+      "TR-04",
+      "Ledger inconsistency / unreconcilable books",
+      "High",
+      "High",
+      "Critical",
+      [
+        "TDD-DAT-01",
+        "TDD-ARC-01",
+        "TDD-DAT-05"
+      ],
+      "Ledger redesign + reconciliation"
+    ],
+    [
+      "TR-05",
+      "Unpatched framework/IdP vulnerabilities",
+      "Medium",
+      "High",
+      "High",
+      [
+        "TDD-STK-01",
+        "TDD-STK-02",
+        "TDD-SEC-14"
+      ],
+      "Upgrade + SCA"
+    ],
+    [
+      "TR-06",
+      "Production outage from cascading failures / SPOFs",
+      "Medium",
+      "High",
+      "High",
+      [
+        "TDD-REL-01",
+        "TDD-REL-02"
+      ],
+      "Resilience4j, HA"
+    ],
+    [
+      "TR-07",
+      "Data loss without backups/DR",
+      "Medium",
+      "Severe",
+      "High",
+      [
+        "TDD-DAT-09",
+        "TDD-REL-05"
+      ],
+      "Backups, PITR, DR"
+    ],
+    [
+      "TR-08",
+      "Schema drift from auto-DDL",
+      "Medium",
+      "Medium",
+      "Medium",
+      [
+        "TDD-DAT-06"
+      ],
+      "Flyway everywhere"
+    ],
+    [
+      "TR-09",
+      "Regression defects due to low test coverage",
+      "High",
+      "Medium",
+      "High",
+      [
+        "TDD-ENG-01",
+        "TDD-INF-01"
+      ],
+      "Test pyramid + CI"
+    ],
+    [
+      "TR-10",
+      "Integration overrun with real CBS / rails",
+      "High",
+      "High",
+      "High",
+      [
+        "TDD-ARC-06"
+      ],
+      "Adapter contracts early"
+    ],
+    [
+      "TR-11",
+      "Information disclosure via errors/actuator/logs",
+      "High",
+      "Medium",
+      "High",
+      [
+        "TDD-CQ-03",
+        "TDD-SEC-08",
+        "TDD-SEC-12"
+      ],
+      "ProblemDetail, actuator lockdown, masking"
+    ],
+    [
+      "TR-12",
+      "Maintainability decay from duplication/fragmented builds",
+      "Medium",
+      "Medium",
+      "Medium",
+      [
+        "TDD-CQ-01",
+        "TDD-ENG-02"
+      ],
+      "Shared starter, multi-project build"
+    ]
+  ],
+  "architecture_gaps": [
+    [
+      "Edge & identity",
+      "Gateway JWT validation only; Keycloak dev mode; no MFA",
+      "WAF + API mgmt, rate limiting, HA Keycloak with MFA, auth-code+PKCE",
+      [
+        "TDD-SEC-09",
+        "TDD-SEC-11",
+        "TDD-STK-02"
+      ]
+    ],
+    [
+      "Authorisation",
+      "None below edge; header trust",
+      "Zero-trust: JWT per service, entitlements, RBAC, maker-checker",
+      [
+        "TDD-ARC-03",
+        "TDD-SEC-02",
+        "TDD-SEC-03",
+        "TDD-SEC-04"
+      ]
+    ],
+    [
+      "Payments orchestration",
+      "Sync Feign, no state machine",
+      "Saga + outbox + idempotency + reconciliation",
+      [
+        "TDD-ARC-01",
+        "TDD-DAT-04"
+      ]
+    ],
+    [
+      "Ledger",
+      "Mutable single-entry, simulated",
+      "Adapter to real CBS; double-entry journal if in-house",
+      [
+        "TDD-DAT-05",
+        "TDD-ARC-06"
+      ]
+    ],
+    [
+      "Integration",
+      "Synchronous only",
+      "Event bus for notifications/audit/reconciliation",
+      [
+        "TDD-ARC-05",
+        "TDD-SCA-04"
+      ]
+    ],
+    [
+      "Data management",
+      "Shared MySQL, ddl-auto update, seed data",
+      "Per-service least privilege, Flyway, backups/PITR",
+      [
+        "TDD-ARC-04",
+        "TDD-DAT-06",
+        "TDD-DAT-07",
+        "TDD-DAT-09"
+      ]
+    ],
+    [
+      "Platform",
+      "docker-compose, static IPs, Eureka/Config",
+      "Kubernetes + Helm, ConfigMaps/Secrets, IaC",
+      [
+        "TDD-INF-02",
+        "TDD-ARC-08",
+        "TDD-INF-04"
+      ]
+    ],
+    [
+      "Delivery",
+      "No CI/CD",
+      "Secure pipeline with quality and security gates",
+      [
+        "TDD-INF-01",
+        "TDD-ENG-01",
+        "TDD-SEC-14"
+      ]
+    ],
+    [
+      "Operability",
+      "Tracing only",
+      "OTel metrics/logs/traces, SLOs, alerting, HA/DR",
+      [
+        "TDD-REL-01",
+        "TDD-REL-02",
+        "TDD-REL-04",
+        "TDD-REL-05"
+      ]
+    ]
+  ],
+  "modernisation": [
+    [
+      "MOD-01",
+      "Upgrade to supported Spring Boot / Spring Cloud / Keycloak lines",
+      [
+        "TDD-STK-01",
+        "TDD-STK-02"
+      ]
+    ],
+    [
+      "MOD-02",
+      "Adopt Gradle multi-project with version catalog and shared internal starter",
+      [
+        "TDD-ENG-02",
+        "TDD-CQ-01"
+      ]
+    ],
+    [
+      "MOD-03",
+      "Kubernetes-native deployment (Helm, probes, HPA, Secrets), drop static IPs",
+      [
+        "TDD-INF-02",
+        "TDD-REL-03",
+        "TDD-INF-04"
+      ]
+    ],
+    [
+      "MOD-04",
+      "OpenTelemetry-based observability stack",
+      [
+        "TDD-REL-04"
+      ]
+    ],
+    [
+      "MOD-05",
+      "Event-driven payments (saga + outbox) on Kafka/RabbitMQ",
+      [
+        "TDD-ARC-01",
+        "TDD-ARC-05"
+      ]
+    ],
+    [
+      "MOD-06",
+      "Ports-and-adapters for CBS / payment hub / biller aggregator",
+      [
+        "TDD-ARC-06"
+      ]
+    ],
+    [
+      "MOD-07",
+      "Zero-trust security model (per-service resource servers, mTLS, policy engine)",
+      [
+        "TDD-ARC-03",
+        "TDD-SEC-10"
+      ]
+    ],
+    [
+      "MOD-08",
+      "Secure software supply chain (SBOM, signing, SCA, secret scanning)",
+      [
+        "TDD-SEC-06",
+        "TDD-SEC-14",
+        "TDD-INF-03"
+      ]
+    ]
+  ],
+  "roadmap": [
+    [
+      "Phase 0 - Stabilise",
+      "0-6 weeks",
+      "~3 engineers (~15 EW)",
+      [
+        "TDD-ARC-02",
+        "TDD-ARC-03",
+        "TDD-ARC-07",
+        "TDD-CQ-02",
+        "TDD-CQ-03",
+        "TDD-SEC-01",
+        "TDD-SEC-02",
+        "TDD-SEC-03",
+        "TDD-SEC-04",
+        "TDD-SEC-05",
+        "TDD-SEC-06",
+        "TDD-SEC-07",
+        "TDD-SEC-08",
+        "TDD-SEC-12",
+        "TDD-SEC-14",
+        "TDD-DAT-01",
+        "TDD-DAT-02",
+        "TDD-DAT-03",
+        "TDD-DAT-07",
+        "TDD-INF-01",
+        "TDD-INF-04",
+        "TDD-ENG-01"
+      ]
+    ],
+    [
+      "Phase 1 - Production engineering",
+      "1.5-5 months",
+      "6-8 engineers",
+      [
+        "TDD-STK-01",
+        "TDD-STK-02",
+        "TDD-ARC-01",
+        "TDD-ARC-04",
+        "TDD-ARC-05",
+        "TDD-CQ-01",
+        "TDD-CQ-05",
+        "TDD-CQ-07",
+        "TDD-CQ-08",
+        "TDD-SEC-09",
+        "TDD-SEC-10",
+        "TDD-SEC-11",
+        "TDD-SEC-13",
+        "TDD-DAT-04",
+        "TDD-DAT-05",
+        "TDD-DAT-06",
+        "TDD-DAT-09",
+        "TDD-INF-02",
+        "TDD-INF-03",
+        "TDD-INF-05",
+        "TDD-SCA-01",
+        "TDD-SCA-05",
+        "TDD-REL-01",
+        "TDD-REL-03",
+        "TDD-REL-04",
+        "TDD-ENG-02",
+        "TDD-ENG-03"
+      ]
+    ],
+    [
+      "Phase 2 - Bank-ready",
+      "5-9 months",
+      "6-8 engineers",
+      [
+        "TDD-ARC-06",
+        "TDD-ARC-08",
+        "TDD-DAT-08",
+        "TDD-SCA-02",
+        "TDD-SCA-04",
+        "TDD-REL-02",
+        "TDD-REL-05",
+        "TDD-STK-03",
+        "TDD-STK-04",
+        "TDD-CQ-04",
+        "TDD-CQ-06",
+        "TDD-DAT-10",
+        "TDD-ENG-04",
+        "TDD-ENG-05"
+      ]
+    ],
+    [
+      "Phase 3 - Optimise",
+      "9-12+ months",
+      "steady-state team",
+      [
+        "TDD-SCA-03",
+        "TDD-SEC-15"
+      ]
+    ]
+  ],
+  "current_architecture_mermaid": "flowchart TB\n  Client([Client]) -->|JWT| GW[API Gateway :8082]\n  Client -->|password grant| KC[Keycloak 23 start-dev]\n  GW -->|/user/**| US[User Service]\n  GW -->|/fund-transfer/**| FT[Fund Transfer]\n  GW -->|/utility-payment/**| UP[Utility Payment]\n  GW -->|\"/banking-core/** (exposed)\"| CB[Core Banking - simulated ledger]\n  US & FT & UP -->|sync Feign, no timeouts| CB\n  US -->|admin API| KC\n  US & FT & UP & CB --> DB[(Single MySQL 8.4, shared user)]\n  CFG[Config Server] -.->|public git, third-party| EXT[(JavatoDev-com config repo)]\n  REG[Eureka]\n  ZIP[Zipkin in-memory]",
+  "target_architecture_mermaid": "flowchart TB\n  Client([Web / Mobile]) --> WAF[WAF + API Mgmt] --> GW[Gateway: JWT, rate limit, header stripping]\n  GW --> ID[Identity & Onboarding]\n  GW --> ACC[Accounts Query]\n  GW --> PAY[Payments Orchestrator: saga + outbox + idempotency]\n  PAY --> LIM[Limits & Fraud hooks]\n  PAY --> ADP[CBS Adapter] --> CBS[(Core Banking)]\n  PAY --> HUB[Payment Hub / Biller aggregator]\n  PAY --> BUS[[Event bus]]\n  BUS --> NOT[Notifications]\n  BUS --> AUD[Immutable audit]\n  BUS --> REC[Reconciliation]\n  KC[Keycloak HA + MFA] -.-> GW\n  VAULT[Secrets manager] -.-> ID\n  VAULT -.-> PAY\n  OBS[OpenTelemetry metrics/logs/traces] -.-> GW\n  K8S[Kubernetes + Helm + GitOps] -.-> PAY",
+  "limitations": [
+    "Static analysis only - services were not executed end-to-end; findings marked Medium confidence (e.g. TDD-ARC-07) should be confirmed at runtime.",
+    "`./gradlew test` with JDK 21 could not complete: Maven Central returned HTTP 429 (rate limit) during dependency resolution in the assessment environment. Test pass/fail status and dependency CVE scan are therefore not available.",
+    "Runtime configuration lives in an external, third-party repository; it was reviewed at its current HEAD, which the services do not pin.",
+    "Technology lifecycle/support statements were not re-verified online (confidence Medium).",
+    "Business data (customers, revenue, KPIs, market share, adoption, SLAs, incidents) is not in the repository and has not been estimated.",
+    "The 35-item capability reference list and effort/timeline estimates are assessor judgement, not market or benchmark data.",
+    "No UI exists; accessibility could not be assessed."
+  ]
+}

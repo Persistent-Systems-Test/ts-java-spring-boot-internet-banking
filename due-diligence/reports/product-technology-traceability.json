@@ -1,0 +1,393 @@
+{
+  "meta": {
+    "repository": "Persistent-Systems-Test/ts-java-spring-boot-internet-banking",
+    "product": "Internet Banking Concept Microservices",
+    "baseline_branch": "main",
+    "baseline_commit": "fa1c445",
+    "due_diligence_branch": "ai-due-diligence/internet-banking-concept-microservices",
+    "assessment_date": "2026-11-03",
+    "generator": "Devin (AI)"
+  },
+  "columns": [
+    "product_capability",
+    "product_findings",
+    "technology_component",
+    "technology_findings",
+    "business_impact",
+    "recommendation"
+  ],
+  "matrix": [
+    {
+      "product_capability": "CAP-05 Intra-bank fund transfer",
+      "product_findings": [
+        "PDD-F-01"
+      ],
+      "technology_component": "core-banking TransactionService; request DTOs",
+      "technology_findings": [
+        "TDD-CQ-02",
+        "TDD-SEC-07"
+      ],
+      "business_impact": "Theft via negative amounts",
+      "recommendation": "Validation + ledger invariants (Phase 0)"
+    },
+    {
+      "product_capability": "CAP-05 Intra-bank fund transfer",
+      "product_findings": [
+        "PDD-F-02"
+      ],
+      "technology_component": "Fund-transfer orchestrator; gateway; missing entitlement layer",
+      "technology_findings": [
+        "TDD-SEC-02",
+        "TDD-ARC-03",
+        "TDD-SEC-04"
+      ],
+      "business_impact": "Unauthorised debits",
+      "recommendation": "Per-service JWT validation + ownership checks"
+    },
+    {
+      "product_capability": "CAP-05 / CAP-06 Ledger postings",
+      "product_findings": [
+        "PDD-F-03"
+      ],
+      "technology_component": "Gateway route /banking-core/**",
+      "technology_findings": [
+        "TDD-ARC-02"
+      ],
+      "business_impact": "Bypass of channel controls",
+      "recommendation": "Remove route; internal-only core"
+    },
+    {
+      "product_capability": "CAP-04 / CAP-05 Balances",
+      "product_findings": [
+        "PDD-F-04"
+      ],
+      "technology_component": "TransactionService balance arithmetic; BankAccountEntity",
+      "technology_findings": [
+        "TDD-DAT-01",
+        "TDD-DAT-02",
+        "TDD-CQ-05"
+      ],
+      "business_impact": "Wrong balances, overdrafts",
+      "recommendation": "Fix arithmetic, locking, tests asserting balances"
+    },
+    {
+      "product_capability": "CAP-07 History / CAP-04 Lookup",
+      "product_findings": [
+        "PDD-F-05"
+      ],
+      "technology_component": "FundTransferService/UtilityPaymentService findAll; AccountService",
+      "technology_findings": [
+        "TDD-SEC-02",
+        "TDD-SEC-12"
+      ],
+      "business_impact": "Privacy breach",
+      "recommendation": "Customer-scoped queries; log masking"
+    },
+    {
+      "product_capability": "CAP-02 Registration approval",
+      "product_findings": [
+        "PDD-F-06",
+        "PDD-F-12"
+      ],
+      "technology_component": "User service UserController/UserService; Keycloak realm",
+      "technology_findings": [
+        "TDD-SEC-03",
+        "TDD-CQ-07",
+        "TDD-SEC-05"
+      ],
+      "business_impact": "Self-approval; blocked users still log in; password leakage",
+      "recommendation": "RBAC + maker-checker; sync lifecycle to IdP; redact logs"
+    },
+    {
+      "product_capability": "CAP-05 Fund transfer",
+      "product_findings": [
+        "PDD-F-07"
+      ],
+      "technology_component": "TransactionService status rules",
+      "technology_findings": [
+        "TDD-DAT-03"
+      ],
+      "business_impact": "Frozen accounts transact",
+      "recommendation": "Status checks in ledger"
+    },
+    {
+      "product_capability": "CAP-05 / CAP-06 Payment lifecycle",
+      "product_findings": [
+        "PDD-F-08",
+        "PDD-F-09"
+      ],
+      "technology_component": "Orchestrators + Feign",
+      "technology_findings": [
+        "TDD-ARC-01",
+        "TDD-DAT-04",
+        "TDD-REL-01"
+      ],
+      "business_impact": "Stuck/duplicate payments",
+      "recommendation": "Saga, outbox, idempotency, circuit breakers"
+    },
+    {
+      "product_capability": "CAP-06 Utility payment",
+      "product_findings": [
+        "PDD-F-10"
+      ],
+      "technology_component": "core utilPayment; no biller adapter",
+      "technology_findings": [
+        "TDD-ARC-06",
+        "TDD-DAT-08"
+      ],
+      "business_impact": "Customer debited without settlement",
+      "recommendation": "Biller adapter + settlement GL"
+    },
+    {
+      "product_capability": "CAP-03 Authentication",
+      "product_findings": [
+        "PDD-G-02"
+      ],
+      "technology_component": "Keycloak 23 realm, gateway",
+      "technology_findings": [
+        "TDD-SEC-09",
+        "TDD-STK-02",
+        "TDD-SEC-11"
+      ],
+      "business_impact": "Account takeover; regulatory non-compliance (SCA)",
+      "recommendation": "Hardened, upgraded Keycloak with MFA + rate limiting"
+    },
+    {
+      "product_capability": "CAP-09 Audit",
+      "product_findings": [
+        "PDD-G-02"
+      ],
+      "technology_component": "AuditAware, gateway X-Auth-Id filter",
+      "technology_findings": [
+        "TDD-ARC-07",
+        "TDD-DAT-05"
+      ],
+      "business_impact": "Untrustworthy audit trail",
+      "recommendation": "Fix propagation; immutable audit stream"
+    },
+    {
+      "product_capability": "Platform configuration",
+      "product_findings": [
+        "PDD-R-01",
+        "PDD-S-01"
+      ],
+      "technology_component": "Config Server -> external repo; javatodev/* images",
+      "technology_findings": [
+        "TDD-SEC-06",
+        "TDD-INF-04",
+        "TDD-ARC-08"
+      ],
+      "business_impact": "Third-party control of production behaviour",
+      "recommendation": "Internalise config and image builds"
+    },
+    {
+      "product_capability": "All capabilities (credentials)",
+      "product_findings": [
+        "PDD-R-05"
+      ],
+      "technology_component": "docker-compose, realm-export, test yml, README",
+      "technology_findings": [
+        "TDD-SEC-01"
+      ],
+      "business_impact": "Trivial compromise of default deployments",
+      "recommendation": "Rotate + secrets manager"
+    },
+    {
+      "product_capability": "Ledger data",
+      "product_findings": [
+        "PDD-R-04"
+      ],
+      "technology_component": "Flyway temp_data migration",
+      "technology_findings": [
+        "TDD-DAT-07"
+      ],
+      "business_impact": "Fake customers in prod",
+      "recommendation": "Test-only migration location"
+    },
+    {
+      "product_capability": "CAP-11 Notifications",
+      "product_findings": [
+        "PDD-G-01"
+      ],
+      "technology_component": "No broker",
+      "technology_findings": [
+        "TDD-ARC-05",
+        "TDD-STK-04"
+      ],
+      "business_impact": "No customer alerts",
+      "recommendation": "Event bus + notification service"
+    },
+    {
+      "product_capability": "Integrator APIs",
+      "product_findings": [
+        "PDD-A-03"
+      ],
+      "technology_component": "Postman, DTOs, springdoc",
+      "technology_findings": [
+        "TDD-STK-03",
+        "TDD-CQ-06",
+        "TDD-ENG-05",
+        "TDD-CQ-04"
+      ],
+      "business_impact": "Integration friction",
+      "recommendation": "Published OpenAPI contracts; regenerate Postman"
+    },
+    {
+      "product_capability": "Real core / rails",
+      "product_findings": [
+        "PDD-A-02"
+      ],
+      "technology_component": "Simulated core",
+      "technology_findings": [
+        "TDD-ARC-06"
+      ],
+      "business_impact": "Unbounded integration effort",
+      "recommendation": "Adapter contracts"
+    },
+    {
+      "product_capability": "Error handling (all)",
+      "product_findings": [
+        "PDD-E-02"
+      ],
+      "technology_component": "GlobalExceptionHandler x4",
+      "technology_findings": [
+        "TDD-CQ-03"
+      ],
+      "business_impact": "Poor UX; info disclosure",
+      "recommendation": "ProblemDetail"
+    },
+    {
+      "product_capability": "Multi-bank / scale",
+      "product_findings": [
+        "PDD-S-02"
+      ],
+      "technology_component": "Single MySQL, single realm, compose",
+      "technology_findings": [
+        "TDD-ARC-04",
+        "TDD-INF-02",
+        "TDD-SCA-01",
+        "TDD-REL-02"
+      ],
+      "business_impact": "Cannot scale commercially",
+      "recommendation": "K8s, per-service DBs, HA; tenancy decision"
+    },
+    {
+      "product_capability": "Product evolution",
+      "product_findings": [
+        "PDD-S-03",
+        "PDD-R-03"
+      ],
+      "technology_component": "Ledger model; duplicated code; fragmented builds",
+      "technology_findings": [
+        "TDD-DAT-05",
+        "TDD-CQ-01",
+        "TDD-ENG-02",
+        "TDD-STK-01"
+      ],
+      "business_impact": "Slow feature delivery",
+      "recommendation": "Ledger generalisation; shared starter; upgrades"
+    },
+    {
+      "product_capability": "CAP-05 Fund transfer (same-account)",
+      "product_findings": [
+        "PDD-F-11"
+      ],
+      "technology_component": "Request validation",
+      "technology_findings": [
+        "TDD-CQ-02"
+      ],
+      "business_impact": "Ledger noise; limit gaming",
+      "recommendation": "from != to validation"
+    },
+    {
+      "product_capability": "Account dashboard",
+      "product_findings": [
+        "PDD-E-03"
+      ],
+      "technology_component": "Missing customer-scoped accounts query; entitlement model",
+      "technology_findings": [
+        "TDD-SEC-02",
+        "TDD-ARC-03"
+      ],
+      "business_impact": "Basic journey missing",
+      "recommendation": "Accounts query API on top of entitlement layer"
+    },
+    {
+      "product_capability": "Customer UI / accessibility",
+      "product_findings": [
+        "PDD-E-01",
+        "PDD-E-04"
+      ],
+      "technology_component": "No front-end component in repository",
+      "technology_findings": [],
+      "business_impact": "Cannot pilot with customers",
+      "recommendation": "Build web/mobile channel (outside current codebase)"
+    },
+    {
+      "product_capability": "Quality assurance",
+      "product_findings": [
+        "PDD-F-04"
+      ],
+      "technology_component": "Test suite",
+      "technology_findings": [
+        "TDD-ENG-01",
+        "TDD-INF-01"
+      ],
+      "business_impact": "Defects reach customers",
+      "recommendation": "Test pyramid + CI gates"
+    },
+    {
+      "product_capability": "Business continuity",
+      "product_findings": [
+        "PDD-R-01"
+      ],
+      "technology_component": "Storage, DR",
+      "technology_findings": [
+        "TDD-DAT-09",
+        "TDD-REL-05"
+      ],
+      "business_impact": "Data loss / long outages",
+      "recommendation": "Backups, PITR, DR plan"
+    }
+  ],
+  "no_technology_counterpart": {
+    "PDD-A-01": "Strength (channel/core separation) - preserved in target architecture (TDD target state)",
+    "PDD-C-01": "Strength (accelerator value) - no technology deficiency",
+    "PDD-C-02": "Business information gap - requires stakeholder validation",
+    "PDD-R-02": "Licensing/branding - legal/commercial, not technical"
+  },
+  "categories": {
+    "Product capabilities with insufficient technical support": [
+      "CAP-05 (validation, ownership, locking)",
+      "CAP-06 (no biller/settlement)",
+      "CAP-07 (no scoping)",
+      "CAP-11 (no broker)",
+      "CAP-12 (no metrics/K8s)"
+    ],
+    "Technology limitations affecting product functionality": [
+      "TDD-ARC-01 sync non-atomic writes -> stuck payments",
+      "TDD-ARC-06 simulated core -> no real accounts",
+      "TDD-DAT-05 mutable ledger -> no statements/audit"
+    ],
+    "Product scalability constraints caused by architecture": [
+      "TDD-DAT-02 ledger locking",
+      "TDD-ARC-04 shared DB",
+      "TDD-REL-02 single instances",
+      "TDD-INF-02 no orchestrator"
+    ],
+    "Security gaps affecting product capabilities": [
+      "TDD-SEC-01..07 (all Critical) affect CAP-01..07",
+      "TDD-SEC-09 affects CAP-03",
+      "TDD-ARC-07 affects CAP-09"
+    ],
+    "Technical debt affecting product evolution": [
+      "TD-02 distributed transactions",
+      "TD-05 duplication/builds",
+      "TD-06 schema management",
+      "TD-08 framework currency"
+    ],
+    "Modernisation opportunities": [
+      "MOD-01..MOD-08 (see TDD technology roadmap)"
+    ]
+  }
+}

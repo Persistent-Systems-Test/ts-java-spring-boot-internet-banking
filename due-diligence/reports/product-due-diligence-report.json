@@ -1,0 +1,1181 @@
+{
+  "meta": {
+    "repository": "Persistent-Systems-Test/ts-java-spring-boot-internet-banking",
+    "product": "Internet Banking Concept Microservices",
+    "baseline_branch": "main",
+    "baseline_commit": "fa1c445",
+    "due_diligence_branch": "ai-due-diligence/internet-banking-concept-microservices",
+    "assessment_date": "2026-11-03",
+    "generator": "Devin (AI)"
+  },
+  "executive": {
+    "verdict": "Prototype / reference implementation. Suitable as a delivery accelerator for a digital banking channel; not market-ready as a product.",
+    "overall_score": 1.7,
+    "maturity": "Concept / prototype (self-described tutorial 'concept', E-01). Happy-path API flows exist end-to-end; no UI, no production hardening.",
+    "headline": [
+      "Money-movement rules are unsafe: negative amounts accepted, no ownership check, available balance double-adjusted, core ledger reachable via gateway (PDD-F-01..04).",
+      "Customer data is not scoped: every authenticated user can list all transfers and payments and read any account balance (PDD-F-05).",
+      "Functional breadth is narrow: 0 fully-implemented and 9 partial out of a 35-capability retail internet-banking reference list (PDD-G-01).",
+      "Regulatory capabilities (KYC/AML, SCA/MFA, consent, immutable audit) are absent (PDD-G-02).",
+      "Runtime configuration and container images depend on third-party-owned assets (PDD-R-01).",
+      "Business data (customers, revenue, adoption, KPIs, market position) is not in the repository and requires stakeholder validation."
+    ],
+    "recommendation": "Proceed only as an accelerator. Close Critical findings in a 4-6 week stabilisation phase before any external exposure; plan a 9-12 month programme to reach a bank-pilot MVP (indicative assessor estimate)."
+  },
+  "scorecard": [
+    [
+      "Functional breadth",
+      1.5,
+      "9 partial / 26 absent of 35 reference capabilities"
+    ],
+    [
+      "Functional correctness",
+      1.0,
+      "PDD-F-01..F-04"
+    ],
+    [
+      "Security & privacy (product view)",
+      1.0,
+      "PDD-F-02, F-05, F-06, F-10"
+    ],
+    [
+      "Compliance readiness",
+      1.0,
+      "PDD-G-02"
+    ],
+    [
+      "User experience",
+      1.0,
+      "API-only, inconsistent errors (PDD-E-01..E-03)"
+    ],
+    [
+      "Integration readiness",
+      2.0,
+      "Clean Feign seam to core, OIDC; no adapters (PDD-A-02)"
+    ],
+    [
+      "Operability",
+      2.0,
+      "Tracing/actuator; no reconciliation (PDD-F-08)"
+    ],
+    [
+      "Documentation & DX",
+      3.5,
+      "README, tutorial series, Postman, compose"
+    ],
+    [
+      "Architecture fitness",
+      3.0,
+      "Sensible channel/core split (PDD-A-01)"
+    ],
+    [
+      "Commercial readiness",
+      1.5,
+      "MIT third-party code, branding, external deps (PDD-R-01, R-02)"
+    ]
+  ],
+  "overview": {
+    "vision": [
+      "Not documented. README states an educational intent: an 'internet banking API concept' that evolves 'as a full fledged REST API collection until deployments'.",
+      "DOCUMENTED",
+      [
+        "E-01"
+      ]
+    ],
+    "mission": [
+      "Not documented - requires stakeholder validation.",
+      "STAKEHOLDER",
+      []
+    ],
+    "objectives": [
+      "Implied by code: enable existing bank customers to self-onboard and perform transfers and bill payments online, separated from the core ledger.",
+      "INFERRED",
+      [
+        "E-26",
+        "E-29"
+      ]
+    ],
+    "value_proposition": [
+      "Channel/core separation; modern Spring Cloud stack; standards-based identity (Keycloak/OIDC); one-command local environment with seed data and Postman collection.",
+      "VERIFIED",
+      [
+        "E-05",
+        "E-11",
+        "E-15",
+        "E-42"
+      ]
+    ],
+    "segments": [
+      "Not documented. Assessor inference: system integrators and bank IT teams seeking a greenfield digital-channel accelerator for smaller banks/credit unions/NBFCs. Requires stakeholder validation.",
+      "INFERRED / STAKEHOLDER",
+      []
+    ],
+    "alignment": [
+      "The implemented flows address the core of the stated problem (self-service money movement) but the absence of authorisation, validation and compliance features means the solution does not yet safely solve it.",
+      "INFERRED",
+      [
+        "E-19",
+        "E-33"
+      ]
+    ]
+  },
+  "features": [
+    [
+      "FT-01",
+      "Customer self-registration",
+      "Implemented",
+      "Partial",
+      [
+        "E-28",
+        "E-29"
+      ],
+      "No email/OTP verification, no password policy, password logged"
+    ],
+    [
+      "FT-02",
+      "Registration approval / blacklist",
+      "Implemented",
+      "Partial",
+      [
+        "E-28",
+        "E-29"
+      ],
+      "No admin role; DISABLED/BLACKLIST do not disable Keycloak login"
+    ],
+    [
+      "FT-03",
+      "Login (OIDC password grant)",
+      "Implemented",
+      "Basic",
+      [
+        "E-10",
+        "E-15"
+      ],
+      "No MFA; brute-force protection off"
+    ],
+    [
+      "FT-04",
+      "Intra-bank fund transfer",
+      "Implemented",
+      "Defective",
+      [
+        "E-18",
+        "E-19",
+        "E-20",
+        "E-33"
+      ],
+      "See PDD-F-01..F-04, F-07"
+    ],
+    [
+      "FT-05",
+      "Utility bill payment",
+      "Implemented",
+      "Defective",
+      [
+        "E-21",
+        "E-34"
+      ],
+      "Ledger debit only; no biller settlement"
+    ],
+    [
+      "FT-06",
+      "Transfer / payment history",
+      "Implemented",
+      "Defective",
+      [
+        "E-33",
+        "E-34"
+      ],
+      "Not customer-scoped"
+    ],
+    [
+      "FT-07",
+      "Account and biller lookup",
+      "Implemented",
+      "Basic",
+      [
+        "E-26"
+      ],
+      "Any account visible to any user"
+    ],
+    [
+      "FT-08",
+      "Customer / user listing",
+      "Implemented",
+      "Basic",
+      [
+        "E-26",
+        "E-29"
+      ],
+      "No role restriction"
+    ],
+    [
+      "FT-09",
+      "OpenAPI documentation (runtime)",
+      "Implemented",
+      "Basic",
+      [
+        "E-47",
+        "E-37"
+      ],
+      "WebFlux UI starter in MVC services"
+    ],
+    [
+      "FT-10",
+      "Notifications (RabbitMQ)",
+      "Documented only",
+      "Absent",
+      [
+        "E-02",
+        "E-03"
+      ],
+      "README: 'PENDING Development'"
+    ],
+    [
+      "FT-11",
+      "Web / mobile UI",
+      "Absent",
+      "Absent",
+      [],
+      "API-only"
+    ]
+  ],
+  "benchmark": [
+    [
+      "Onboarding & identity",
+      "Self-registration of existing customers",
+      "Partial"
+    ],
+    [
+      "Onboarding & identity",
+      "eKYC / new-to-bank onboarding",
+      "Absent"
+    ],
+    [
+      "Onboarding & identity",
+      "MFA / strong customer authentication",
+      "Absent"
+    ],
+    [
+      "Onboarding & identity",
+      "Device binding",
+      "Absent"
+    ],
+    [
+      "Onboarding & identity",
+      "Password reset / recovery",
+      "Absent"
+    ],
+    [
+      "Onboarding & identity",
+      "Session management / idle timeout policy",
+      "Absent"
+    ],
+    [
+      "Accounts",
+      "Account dashboard (my accounts)",
+      "Absent"
+    ],
+    [
+      "Accounts",
+      "Balance enquiry (own accounts)",
+      "Partial"
+    ],
+    [
+      "Accounts",
+      "Transaction history / mini-statement",
+      "Partial"
+    ],
+    [
+      "Accounts",
+      "e-Statements / certificates",
+      "Absent"
+    ],
+    [
+      "Accounts",
+      "Deposits & loans view",
+      "Absent"
+    ],
+    [
+      "Payments",
+      "Own-account transfer",
+      "Partial"
+    ],
+    [
+      "Payments",
+      "Intra-bank third-party transfer",
+      "Partial"
+    ],
+    [
+      "Payments",
+      "Beneficiary management",
+      "Absent"
+    ],
+    [
+      "Payments",
+      "Domestic interbank transfers",
+      "Absent"
+    ],
+    [
+      "Payments",
+      "Instant payment rails",
+      "Absent"
+    ],
+    [
+      "Payments",
+      "International transfers",
+      "Absent"
+    ],
+    [
+      "Payments",
+      "Scheduled / standing instructions",
+      "Absent"
+    ],
+    [
+      "Payments",
+      "Bill payment via biller aggregator",
+      "Partial"
+    ],
+    [
+      "Payments",
+      "Transaction limits",
+      "Absent"
+    ],
+    [
+      "Payments",
+      "Payment status tracking / reversal",
+      "Absent"
+    ],
+    [
+      "Cards",
+      "Card management",
+      "Absent"
+    ],
+    [
+      "Engagement",
+      "Notifications (SMS/email/push)",
+      "Absent"
+    ],
+    [
+      "Engagement",
+      "Service requests",
+      "Absent"
+    ],
+    [
+      "Engagement",
+      "Web / mobile UI",
+      "Absent"
+    ],
+    [
+      "Engagement",
+      "Multi-language",
+      "Partial"
+    ],
+    [
+      "Back-office",
+      "Admin console with RBAC",
+      "Absent"
+    ],
+    [
+      "Back-office",
+      "Maker-checker approvals",
+      "Absent"
+    ],
+    [
+      "Back-office",
+      "Reporting & reconciliation",
+      "Absent"
+    ],
+    [
+      "Risk & compliance",
+      "Fraud / AML monitoring",
+      "Absent"
+    ],
+    [
+      "Risk & compliance",
+      "Sanctions screening",
+      "Absent"
+    ],
+    [
+      "Risk & compliance",
+      "Immutable audit log",
+      "Partial"
+    ],
+    [
+      "Risk & compliance",
+      "Consent & privacy management",
+      "Absent"
+    ],
+    [
+      "Risk & compliance",
+      "Open-banking APIs",
+      "Absent"
+    ],
+    [
+      "Engagement",
+      "API documentation for integrators",
+      "Partial"
+    ]
+  ],
+  "business_value": [
+    [
+      "Business value proposition",
+      "Accelerator for a digital banking channel; demonstrates target architecture patterns.",
+      "INFERRED",
+      [
+        "E-01",
+        "E-05"
+      ]
+    ],
+    [
+      "Outcome alignment",
+      "Flows align with self-service outcomes (reduced branch transactions) but cannot be safely realised until Critical findings are fixed.",
+      "INFERRED",
+      [
+        "E-19",
+        "E-33"
+      ]
+    ],
+    [
+      "Operational efficiency",
+      "Self-registration with approval and straight-through intra-bank transfers would reduce manual work once secured; no ops tooling (reconciliation, admin console) yet.",
+      "INFERRED",
+      [
+        "E-29",
+        "E-33"
+      ]
+    ],
+    [
+      "Business scalability",
+      "Stateless services can scale horizontally; single-tenant design and simulated core limit commercial scaling.",
+      "INFERRED",
+      [
+        "E-05",
+        "E-08"
+      ]
+    ],
+    [
+      "Productivity improvements",
+      "Delivery-team productivity gain from reusable scaffolding; magnitude requires stakeholder measurement.",
+      "STAKEHOLDER",
+      []
+    ],
+    [
+      "Revenue / market share / adoption",
+      "Not available in repository.",
+      "STAKEHOLDER",
+      []
+    ]
+  ],
+  "journeys": [
+    [
+      "UJ-01 Register & get approved",
+      "WF-01",
+      "Works on happy path; no verification step, approval not role-protected, password logged",
+      [
+        "PDD-F-06",
+        "PDD-F-12",
+        "PDD-E-02"
+      ]
+    ],
+    [
+      "UJ-02 Log in",
+      "WF-02",
+      "Password grant only; no MFA, no recovery",
+      [
+        "PDD-G-02"
+      ]
+    ],
+    [
+      "UJ-03 View my accounts",
+      "-",
+      "Not supported",
+      [
+        "PDD-E-03"
+      ]
+    ],
+    [
+      "UJ-04 Transfer money",
+      "WF-03",
+      "Works on happy path; unsafe rules, wrong balances, no confirmation/receipt",
+      [
+        "PDD-F-01",
+        "PDD-F-02",
+        "PDD-F-04",
+        "PDD-F-09"
+      ]
+    ],
+    [
+      "UJ-05 Pay a bill",
+      "WF-04",
+      "Ledger debit only; biller not paid",
+      [
+        "PDD-F-10"
+      ]
+    ],
+    [
+      "UJ-06 View history",
+      "WF-05",
+      "Shows all customers' records",
+      [
+        "PDD-F-05"
+      ]
+    ]
+  ],
+  "findings": [
+    {
+      "id": "PDD-F-01",
+      "category": "B. Functional",
+      "title": "Negative and zero amounts accepted for transfers and payments",
+      "description": "validateBalance only rejects when balance < amount; there is no amount > 0 rule and no Bean Validation. A negative transfer debits the beneficiary and credits the initiator.",
+      "evidence": [
+        "E-19",
+        "E-18"
+      ],
+      "business_impact": "Direct fraud/theft vector; customer funds can be moved without consent.",
+      "severity": "Critical",
+      "recommendation": "Enforce amount > 0 and max-amount rules at API and ledger level; add tests.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-F-02",
+      "category": "B. Functional",
+      "title": "No check that the customer owns the source account",
+      "description": "Orchestrators forward fromAccount/account verbatim to core; JWT identity is never mapped to the customer's accounts.",
+      "evidence": [
+        "E-33",
+        "E-34",
+        "E-18"
+      ],
+      "business_impact": "Any logged-in user can move money out of any account.",
+      "severity": "Critical",
+      "recommendation": "Introduce customer-account entitlement checks derived from the authenticated identity.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-F-03",
+      "category": "B. Functional",
+      "title": "Core ledger operations reachable directly by end users",
+      "description": "Gateway routes /banking-core/** to core-banking-service with only 'authenticated' required, bypassing channel services and their history records.",
+      "evidence": [
+        "E-13",
+        "E-15"
+      ],
+      "business_impact": "Unrecorded ledger manipulation; channel controls can be bypassed.",
+      "severity": "Critical",
+      "recommendation": "Remove public route to core; restrict core to internal service-to-service calls.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-F-04",
+      "category": "B. Functional",
+      "title": "Available balance shown to customers is wrong after every transaction",
+      "description": "After updating actualBalance, availableBalance is recomputed from the new actual and adjusted again (debit: -2x; credit: +2x). Any existing hold is overwritten.",
+      "evidence": [
+        "E-20"
+      ],
+      "business_impact": "Incorrect balances, wrongful declines/approvals, customer complaints, reconciliation breaks.",
+      "severity": "Critical",
+      "recommendation": "Correct balance arithmetic; model holds explicitly; add balance assertions in tests.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-F-05",
+      "category": "B. Functional",
+      "title": "History and lookups are not scoped to the customer",
+      "description": "Transfer and payment history use findAll(pageable); core account lookup returns any account by number.",
+      "evidence": [
+        "E-33",
+        "E-34",
+        "E-26"
+      ],
+      "business_impact": "Privacy breach exposing all customers' financial data.",
+      "severity": "Critical",
+      "recommendation": "Filter every read by the authenticated customer; restrict admin listing to back-office roles.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-F-06",
+      "category": "B. Functional",
+      "title": "Any authenticated user can approve or blacklist registrations",
+      "description": "PATCH /bank-users/update/{id} has no role check; Keycloak realm defines no business roles.",
+      "evidence": [
+        "E-28",
+        "E-10"
+      ],
+      "business_impact": "Self-approval / privilege escalation; onboarding control ineffective.",
+      "severity": "Critical",
+      "recommendation": "Introduce admin/ops roles and maker-checker approval.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-F-07",
+      "category": "B. Functional",
+      "title": "Blocked, dormant or pending accounts can transact",
+      "description": "AccountStatus enum exists but is never consulted during debit or credit.",
+      "evidence": [
+        "E-19",
+        "E-25"
+      ],
+      "business_impact": "Breach of account-freeze obligations (e.g. court orders, fraud holds).",
+      "severity": "High",
+      "recommendation": "Enforce status rules for both debit and credit legs.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-F-08",
+      "category": "B. Functional",
+      "title": "Failed payments remain PENDING/PROCESSING forever",
+      "description": "Orchestrators save a pending record, call core, then update to SUCCESS; exceptions are not handled and FAILED is never set; no reconciliation.",
+      "evidence": [
+        "E-33",
+        "E-34"
+      ],
+      "business_impact": "Phantom or duplicate payments visible to customers; operations cannot reconcile.",
+      "severity": "High",
+      "recommendation": "Explicit payment state machine with FAILED/REVERSED, timeouts and reconciliation.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-F-09",
+      "category": "B. Functional",
+      "title": "Duplicate submission creates duplicate debits",
+      "description": "No idempotency key; each POST creates a new transaction.",
+      "evidence": [
+        "E-33",
+        "E-18"
+      ],
+      "business_impact": "Double charging on client/network retries.",
+      "severity": "High",
+      "recommendation": "Idempotency-Key on payment APIs end-to-end.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-F-10",
+      "category": "B. Functional",
+      "title": "Utility payments debit the customer but no biller is paid",
+      "description": "Core utilPayment only debits the customer account; comment notes third-party biller API would be called; no settlement/suspense credit.",
+      "evidence": [
+        "E-21"
+      ],
+      "business_impact": "In a real deployment customer money would leave without settlement; prototype only.",
+      "severity": "High",
+      "recommendation": "Integrate a biller aggregator and post to a settlement account.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-F-11",
+      "category": "B. Functional",
+      "title": "Same-account transfers are permitted",
+      "description": "No from != to rule.",
+      "evidence": [
+        "E-18"
+      ],
+      "business_impact": "Noise in ledger; potential gaming of limits once added.",
+      "severity": "Medium",
+      "recommendation": "Reject identical source and destination.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-F-12",
+      "category": "B. Functional",
+      "title": "Disabling or blacklisting a user does not block login",
+      "description": "Only APPROVED triggers a Keycloak update; DISABLED/BLACKLIST only change the local status.",
+      "evidence": [
+        "E-29"
+      ],
+      "business_impact": "Blocked customers can still authenticate and transact.",
+      "severity": "High",
+      "recommendation": "Synchronise all lifecycle states to the IdP (disable user, revoke sessions).",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-A-01",
+      "category": "D. Product Architecture",
+      "title": "Clean separation between channel services and core ledger",
+      "description": "Channel services own requests/status; core owns balances and postings; integration via declarative Feign clients.",
+      "evidence": [
+        "E-26",
+        "E-33",
+        "E-34"
+      ],
+      "business_impact": "Positive: enables replacing the simulated core with a real CBS behind the same contract.",
+      "severity": "Low",
+      "recommendation": "Preserve the boundary; formalise it as an anti-corruption/adapter layer.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-A-02",
+      "category": "D. Product Architecture",
+      "title": "No adapter layer for real core banking, payment rails or billers",
+      "description": "Core is a simulated ledger; no interfaces for external CBS, interbank rails or biller aggregators.",
+      "evidence": [
+        "E-21",
+        "E-26"
+      ],
+      "business_impact": "Integration effort for first real deployment is unbounded until target systems are known.",
+      "severity": "High",
+      "recommendation": "Define CBS/payment-hub adapter contracts early (stakeholder input on target systems).",
+      "confidence": "Medium"
+    },
+    {
+      "id": "PDD-A-03",
+      "category": "D. Product Architecture",
+      "title": "API contracts are inconsistent across docs and code",
+      "description": "Postman uses /core/** and /payment/** and /bank-user while gateway routes are /banking-core/** and /utility-payment/** and controller uses /bank-users; account number typed Long in two services vs String in core.",
+      "evidence": [
+        "E-42",
+        "E-13",
+        "E-44"
+      ],
+      "business_impact": "Integrator friction; demos fail; latent data bugs for non-numeric account numbers.",
+      "severity": "Medium",
+      "recommendation": "Publish versioned OpenAPI specs as the contract; align Postman and DTO types.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-E-01",
+      "category": "E. User Experience",
+      "title": "No customer-facing user interface",
+      "description": "Repository contains only backend services; interaction is via Postman/HTTP.",
+      "evidence": [
+        "E-05",
+        "E-42"
+      ],
+      "business_impact": "Cannot be piloted with customers without building web/mobile front-ends.",
+      "severity": "High",
+      "recommendation": "Build web (and later mobile) channel against the APIs.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-E-02",
+      "category": "E. User Experience",
+      "title": "Error responses are technical and inconsistent",
+      "description": "Generic handler returns HTTP 400 with raw exception text for all unexpected errors.",
+      "evidence": [
+        "E-27"
+      ],
+      "business_impact": "Poor customer messaging; support cost; information disclosure.",
+      "severity": "Medium",
+      "recommendation": "Standard error model (RFC 7807) with user-safe messages and correct status codes.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-E-03",
+      "category": "E. User Experience",
+      "title": "No customer dashboard or own-account listing",
+      "description": "No endpoint returns the authenticated customer's accounts.",
+      "evidence": [
+        "E-26"
+      ],
+      "business_impact": "Basic 'view my accounts' journey missing.",
+      "severity": "High",
+      "recommendation": "Add customer-scoped accounts query API.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-E-04",
+      "category": "E. User Experience",
+      "title": "Accessibility cannot be assessed",
+      "description": "No UI exists; accessibility evidence not available.",
+      "evidence": [],
+      "business_impact": "Unknown; to be addressed once UI exists.",
+      "severity": "Low",
+      "recommendation": "Adopt WCAG 2.1 AA as UI acceptance criterion.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-S-01",
+      "category": "F. Scalability & Extensibility",
+      "title": "Configuration externalised but owned by a third party",
+      "description": "All runtime settings are pulled from JavatoDev-com config repo; changing behaviour requires editing a repo the organisation does not control.",
+      "evidence": [
+        "E-11",
+        "E-12"
+      ],
+      "business_impact": "Configurability exists but is not under the product owner's control.",
+      "severity": "High",
+      "recommendation": "Internalise configuration into an organisation-owned store.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-S-02",
+      "category": "F. Scalability & Extensibility",
+      "title": "No multi-tenancy or multi-bank support",
+      "description": "Single realm, single schema set, no tenant identifiers.",
+      "evidence": [
+        "E-08",
+        "E-10"
+      ],
+      "business_impact": "Each bank deployment needs a separate stack; limits SaaS model.",
+      "severity": "Medium",
+      "recommendation": "Decide tenancy model with stakeholders before scaling commercially.",
+      "confidence": "Medium"
+    },
+    {
+      "id": "PDD-S-03",
+      "category": "F. Scalability & Extensibility",
+      "title": "Single-currency, single-product ledger model",
+      "description": "No currency field; account types enumerated but only savings used; transaction types limited to two.",
+      "evidence": [
+        "E-24",
+        "E-25"
+      ],
+      "business_impact": "Adding deposits, loans, FX or new payment types requires ledger redesign.",
+      "severity": "Medium",
+      "recommendation": "Generalise ledger model (currency, product, transaction codes).",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-C-01",
+      "category": "C. Business Value",
+      "title": "Accelerator value for digital-channel delivery",
+      "description": "Working skeleton of gateway, identity, discovery, config, tracing and three business flows reduces initial setup effort.",
+      "evidence": [
+        "E-05",
+        "E-37"
+      ],
+      "business_impact": "Positive: shortens time-to-first-demo for delivery teams.",
+      "severity": "Low",
+      "recommendation": "Position as internal accelerator; quantify reuse savings with delivery teams.",
+      "confidence": "Medium"
+    },
+    {
+      "id": "PDD-C-02",
+      "category": "C. Business Value",
+      "title": "Business outcomes and KPIs not defined",
+      "description": "No documented KPIs, customers, revenue or SLAs.",
+      "evidence": [],
+      "business_impact": "Value case cannot be validated from the repository.",
+      "severity": "Medium",
+      "recommendation": "Obtain business case and KPIs from stakeholders.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-G-01",
+      "category": "G. Product Risk",
+      "title": "Narrow functional coverage versus a retail internet-banking reference set",
+      "description": "0 fully-implemented, 9 partial, 26 absent of 35 reference capabilities (assessor checklist).",
+      "evidence": [
+        "E-26"
+      ],
+      "business_impact": "Large build effort before market parity.",
+      "severity": "High",
+      "recommendation": "Prioritised roadmap (see product-roadmap).",
+      "confidence": "Medium"
+    },
+    {
+      "id": "PDD-G-02",
+      "category": "G. Product Risk",
+      "title": "Regulatory capabilities absent",
+      "description": "No KYC/AML, sanctions, SCA/MFA, consent, or regulator-grade audit trail.",
+      "evidence": [
+        "E-10",
+        "E-36"
+      ],
+      "business_impact": "Cannot be deployed in a regulated jurisdiction.",
+      "severity": "Critical",
+      "recommendation": "Compliance-by-design workstream; engage compliance early.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-R-01",
+      "category": "G. Product Risk",
+      "title": "Operational dependency on third-party assets",
+      "description": "Config repo and Docker images (javatodev/*) owned by original author.",
+      "evidence": [
+        "E-11",
+        "E-05"
+      ],
+      "business_impact": "Third party can alter or remove assets; supply-chain and continuity risk.",
+      "severity": "High",
+      "recommendation": "Fork and internalise config and image builds.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-R-02",
+      "category": "G. Product Risk",
+      "title": "No exclusive IP; rebranding required",
+      "description": "MIT-licensed third-party code; packages, realm, images and FUNDING.yml carry original branding.",
+      "evidence": [
+        "E-04",
+        "E-48"
+      ],
+      "business_impact": "Competitors can use the same base; limited acquisition value of code itself.",
+      "severity": "Medium",
+      "recommendation": "Retain licence notice; rebrand; value lies in additions.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-R-03",
+      "category": "G. Product Risk",
+      "title": "Low maintenance activity and single original author",
+      "description": "Commit history: 59 (2021), 12 (2022), 1 (2023), 113 (2024), 8 (2025), 1 (2026).",
+      "evidence": [
+        "E-43"
+      ],
+      "business_impact": "Key-person and sustainability risk if upstream is relied on.",
+      "severity": "Medium",
+      "recommendation": "Own the codebase internally; build team knowledge.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-R-04",
+      "category": "G. Product Risk",
+      "title": "Seed test data shipped in production migration",
+      "description": "Flyway temp_data migration inserts sample customers and balances in every environment.",
+      "evidence": [
+        "E-24"
+      ],
+      "business_impact": "Fake customers/balances in production ledger.",
+      "severity": "High",
+      "recommendation": "Separate test data from production migrations.",
+      "confidence": "High"
+    },
+    {
+      "id": "PDD-R-05",
+      "category": "G. Product Risk",
+      "title": "Published credentials in README and repository",
+      "description": "README publishes a test user password; compose and realm files contain secrets.",
+      "evidence": [
+        "E-02",
+        "E-06",
+        "E-10"
+      ],
+      "business_impact": "Any environment built from defaults is trivially accessible.",
+      "severity": "Critical",
+      "recommendation": "Rotate and externalise all credentials before any shared deployment.",
+      "confidence": "High"
+    }
+  ],
+  "risks": [
+    [
+      "PR-01",
+      "Fraud / financial loss through money-movement defects",
+      "High",
+      "Severe",
+      "Critical",
+      [
+        "PDD-F-01",
+        "PDD-F-02",
+        "PDD-F-03",
+        "PDD-F-04"
+      ],
+      "Fix before any external exposure"
+    ],
+    [
+      "PR-02",
+      "Customer data-protection breach",
+      "High",
+      "Severe",
+      "Critical",
+      [
+        "PDD-F-05",
+        "PDD-R-05"
+      ],
+      "Customer scoping; credential rotation"
+    ],
+    [
+      "PR-03",
+      "Regulatory rejection (KYC/AML/SCA absent)",
+      "High",
+      "Severe",
+      "Critical",
+      [
+        "PDD-G-02"
+      ],
+      "Compliance-by-design workstream"
+    ],
+    [
+      "PR-04",
+      "Third-party control of config and images",
+      "Medium",
+      "High",
+      "High",
+      [
+        "PDD-R-01",
+        "PDD-S-01"
+      ],
+      "Internalise assets"
+    ],
+    [
+      "PR-05",
+      "Underestimated productisation effort",
+      "High",
+      "High",
+      "High",
+      [
+        "PDD-G-01",
+        "PDD-E-01"
+      ],
+      "Plan as accelerator programme"
+    ],
+    [
+      "PR-06",
+      "Real core/rails integration complexity",
+      "High",
+      "High",
+      "High",
+      [
+        "PDD-A-02",
+        "PDD-F-10"
+      ],
+      "Adapter contracts; identify target systems"
+    ],
+    [
+      "PR-07",
+      "Operational failure: stuck/duplicate payments",
+      "High",
+      "High",
+      "High",
+      [
+        "PDD-F-08",
+        "PDD-F-09"
+      ],
+      "Payment state machine, idempotency, reconciliation"
+    ],
+    [
+      "PR-08",
+      "Onboarding control bypass",
+      "High",
+      "High",
+      "High",
+      [
+        "PDD-F-06",
+        "PDD-F-12"
+      ],
+      "RBAC, maker-checker, IdP lifecycle sync"
+    ],
+    [
+      "PR-09",
+      "Adoption challenge: no UI, inconsistent contracts",
+      "High",
+      "Medium",
+      "Medium",
+      [
+        "PDD-E-01",
+        "PDD-E-03",
+        "PDD-A-03"
+      ],
+      "UI build; published OpenAPI"
+    ],
+    [
+      "PR-10",
+      "IP/branding and upstream sustainability",
+      "Medium",
+      "Medium",
+      "Medium",
+      [
+        "PDD-R-02",
+        "PDD-R-03"
+      ],
+      "Own codebase; rebrand"
+    ],
+    [
+      "PR-11",
+      "Business case not evidenced",
+      "Medium",
+      "Medium",
+      "Medium",
+      [
+        "PDD-C-02"
+      ],
+      "Stakeholder validation"
+    ],
+    [
+      "PR-12",
+      "Production data contamination by seed data",
+      "Medium",
+      "High",
+      "High",
+      [
+        "PDD-R-04"
+      ],
+      "Test-only migrations"
+    ]
+  ],
+  "strengths": [
+    "Clear bounded contexts: onboarding/identity, transfers, bill-pay, ledger (PDD-A-01)",
+    "Modern, widely-skilled stack (Java 21, Spring Boot 3, Spring Cloud) (E-37)",
+    "Standards-based identity with Keycloak/OIDC (E-15)",
+    "Easy local setup with docker-compose, seed data and Postman (E-05, E-42)",
+    "Good learning documentation (tutorial series linked in README) (E-01)"
+  ],
+  "weaknesses": [
+    "Critical money-movement and authorisation defects (PDD-F-01..F-06)",
+    "Narrow functional scope; no UI (PDD-G-01, PDD-E-01)",
+    "No compliance capabilities (PDD-G-02)",
+    "Third-party-owned runtime assets and branding (PDD-R-01, PDD-R-02)",
+    "No business case/KPIs in evidence (PDD-C-02)"
+  ],
+  "roadmap": [
+    [
+      "P0 Stabilise",
+      "0-6 weeks",
+      [
+        "PDD-F-01",
+        "PDD-F-02",
+        "PDD-F-03",
+        "PDD-F-04",
+        "PDD-F-05",
+        "PDD-F-06",
+        "PDD-R-01",
+        "PDD-R-04",
+        "PDD-R-05",
+        "PDD-R-02",
+        "PDD-C-02"
+      ],
+      "Safe for internal demos; secrets rotated; config owned; rebranded; business case & KPIs obtained"
+    ],
+    [
+      "P1 MVP channel",
+      "2-5 months",
+      [
+        "PDD-F-07",
+        "PDD-F-08",
+        "PDD-F-09",
+        "PDD-F-11",
+        "PDD-F-12",
+        "PDD-E-01",
+        "PDD-E-02",
+        "PDD-E-03",
+        "PDD-A-03"
+      ],
+      "MFA, dashboard, scoped history, beneficiaries, limits, idempotent payments, notifications, admin console, web UI"
+    ],
+    [
+      "P2 Bank-ready",
+      "5-9 months",
+      [
+        "PDD-A-02",
+        "PDD-F-10",
+        "PDD-G-02",
+        "PDD-S-01",
+        "PDD-S-03",
+        "PDD-R-03",
+        "PDD-A-01"
+      ],
+      "Real CBS adapter, interbank rail, biller aggregator, AML/fraud hooks, immutable audit, HA/DR, VAPT"
+    ],
+    [
+      "P3 Differentiate",
+      "9-12+ months",
+      [
+        "PDD-G-01",
+        "PDD-S-02",
+        "PDD-E-04",
+        "PDD-C-01"
+      ],
+      "Mobile, open banking, eKYC onboarding, tenancy model"
+    ]
+  ],
+  "limitations": [
+    "Static analysis only - services were not executed end-to-end; findings marked Medium confidence (e.g. TDD-ARC-07) should be confirmed at runtime.",
+    "`./gradlew test` with JDK 21 could not complete: Maven Central returned HTTP 429 (rate limit) during dependency resolution in the assessment environment. Test pass/fail status and dependency CVE scan are therefore not available.",
+    "Runtime configuration lives in an external, third-party repository; it was reviewed at its current HEAD, which the services do not pin.",
+    "Technology lifecycle/support statements were not re-verified online (confidence Medium).",
+    "Business data (customers, revenue, KPIs, market share, adoption, SLAs, incidents) is not in the repository and has not been estimated.",
+    "The 35-item capability reference list and effort/timeline estimates are assessor judgement, not market or benchmark data.",
+    "No UI exists; accessibility could not be assessed."
+  ]
+}
