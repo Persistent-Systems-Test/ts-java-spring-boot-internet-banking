@@ -1,13 +1,13 @@
 ---
-name: requirement-validation
+name: legacy-mapping
 description: Trace banking requirements through Spring Boot services, persistence, and API consumers when comparing migrated Java behavior with legacy SAS.
 ---
 
-# Requirement validation — Spring Boot banking
+# Legacy Mapping — Spring Boot banking
 
 ## When to use this
 
-Use this repo-specific companion to `.workshop/playbooks/requirement-validation.devin.md` when validating a business requirement against Java and legacy SAS. Start with `docs/LEGACY_TO_JAVA_MIGRATION_MAP.md` for leads, then verify each lead in code. Do not infer migration parity from the map.
+Use this repo-specific companion to `.workshop/playbooks/legacy-mapping.devin.md` when validating a business requirement against Java and legacy SAS. Start with `docs/LEGACY_TO_JAVA_MIGRATION_MAP.md` for leads, then verify each lead in code. Do not infer migration parity from the map.
 
 ## Layout
 

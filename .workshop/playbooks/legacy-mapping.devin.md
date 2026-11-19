@@ -1,10 +1,10 @@
-# Playbook: Validate a requirement across SAS and Spring Boot banking
+# Playbook: Legacy Mapping
 
 > **Facilitator / presenter:** This file is the portable source for a Devin Playbook.
 > In an organization that supports Playbooks, copy its contents into
 > **Settings → Playbooks → Create a new Playbook** and configure the invocation
-> as `!requirement-validation`. Committing this file does not register it.
-> In a Skills-only organization, use the shared Skill `@skills:cross-repo-requirement-validation`
+> as `!legacy-mapping`. Committing this file does not register it.
+> In a Skills-only organization, use the shared Skill `@skills:legacy-mapping`
 > instead, once it is installed and approved.
 
 ## Overview
@@ -28,7 +28,7 @@ Java as evidence of migrated behavior; do not treat them as interchangeable.
    scope, inputs, thresholds, exceptions and observable outcome. Keep unknowns
    separate from stated acceptance criteria.
 2. **Consult the migration map.** Read `docs/LEGACY_TO_JAVA_MIGRATION_MAP.md`
-   in the Java repo and explicitly open `.agents/skills/requirement-validation/SKILL.md`
+   in the Java repo and explicitly open `.agents/skills/legacy-mapping/SKILL.md`
    in each repo so you use both sets of local mechanics. Treat map rows as leads,
    including rows marked `No counterpart found`. If a guide is absent at a
    selected ref, say so and continue from source.
