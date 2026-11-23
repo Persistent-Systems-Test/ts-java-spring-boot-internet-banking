@@ -1,5 +1,8 @@
 package com.javatodev.finance.service;
 
+import com.javatodev.finance.exception.GlobalErrorCode;
+import com.javatodev.finance.exception.InvalidTransferAmountException;
+import com.javatodev.finance.exception.TransferLimitExceededException;
 import com.javatodev.finance.model.TransactionStatus;
 import com.javatodev.finance.model.dto.FundTransfer;
 import com.javatodev.finance.model.dto.request.FundTransferRequest;
@@ -13,6 +16,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
@@ -23,6 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class FundTransferService {
 
+    static final BigDecimal MAX_TRANSFER_AMOUNT = new BigDecimal("100000");
+
     private final FundTransferRepository fundTransferRepository;
     private final BankingCoreFeignClient bankingCoreFeignClient;
 
@@ -30,6 +36,8 @@ public class FundTransferService {
 
     public FundTransferResponse fundTransfer(FundTransferRequest request) {
         log.info("Sending fund transfer request {}" + request.toString());
+
+        validateAmount(request.getAmount());
 
         FundTransferEntity entity = new FundTransferEntity();
         BeanUtils.copyProperties(request, entity);
@@ -44,6 +52,15 @@ public class FundTransferService {
         fundTransferResponse.setMessage("Fund Transfer Successfully Completed");
         return fundTransferResponse;
 
+    }
+
+    private void validateAmount(BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidTransferAmountException("Transfer amount must be greater than zero", GlobalErrorCode.INVALID_TRANSFER_AMOUNT);
+        }
+        if (amount.compareTo(MAX_TRANSFER_AMOUNT) > 0) {
+            throw new TransferLimitExceededException("Transfer amount exceeds the per-transaction limit of " + MAX_TRANSFER_AMOUNT, GlobalErrorCode.TRANSFER_LIMIT_EXCEEDED);
+        }
     }
 
     public List<FundTransfer> readAllTransfers(Pageable pageable) {
